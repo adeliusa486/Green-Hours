@@ -80,34 +80,64 @@ def proportional_cap(inst: Instance, declare=None, slack=1.5, **kw):
     """B6.  A disclosure-based coordinator: compute the aggregate optimum, hand
     each operator a per-slot quota pro rata to its declared demand, then let
     operators optimise inside the quota.  `declare` lets an operator inflate its
-    declaration, which is the manipulation the paper mentions."""
+    declaration, which is the manipulation the paper mentions.
+
+    Returns None when the quota empties some operator's feasible set, which is
+    what happens on every calibrated instance: the planner concentrates load
+    into a few hours, a pro-rata slice of that concentration is narrower than
+    the deadline staircase allows, and no feasible schedule exists inside it.
+    An earlier version caught the exception and returned the planner profile
+    instead -- so the baseline scored the planner's own cost and appeared to
+    beat every mechanism.  Reporting the scheme as inapplicable is the finding;
+    a number would have been fiction.
+    """
     from .core import Feasible
     xp = _planner_fast(inst)
     ystar = xp.sum(axis=0)
     E = np.array([Xi.E for Xi in inst.X])
     d = E.copy() if declare is None else np.asarray(declare, float)
     share = d / d.sum()
-    inst2 = Instance(a=inst.a, m=inst.m, b=inst.b,
-                     X=[Feasible(E=inst.X[i].E,
-                                 u=np.minimum(inst.X[i].u,
-                                              np.maximum(slack * share[i] * ystar,
-                                                         inst.X[i].E / inst.T * 1e-3)),
-                                 R=inst.X[i].R) for i in range(inst.n)],
+    X2 = []
+    for i in range(inst.n):
+        u = np.minimum(inst.X[i].u,
+                       np.maximum(slack * share[i] * ystar,
+                                  inst.X[i].E / inst.T * 1e-3))
+        if u.sum() < inst.X[i].E - 1e-9:
+            return None                      # quota cannot carry E_i
+        R = inst.X[i].R
+        if R is not None and np.any(np.cumsum(u) < R - 1e-9):
+            return None                      # quota cannot meet the deadlines
+        X2.append(Feasible(E=inst.X[i].E, u=u, R=R))
+    inst2 = Instance(a=inst.a, m=inst.m, b=inst.b, X=X2,
                      psi=inst.psi, lam=inst.lam, arrival=inst.arrival)
     try:
         return nash(inst2, **kw)[0]
     except ValueError:
-        return xp                    # quota made the set infeasible
+        return None
 
 
 def planner_aggregate(inst: Instance):
-    """The planner's optimal AGGREGATE profile y*.
+    """The planner's AGGREGATE profile under the *aggregate relaxation*.
 
-    With no deferral penalty C depends on x only through y, and the Minkowski
-    sum of the operators' feasible sets is itself a polytope of the same form
-    (these are polymatroid base polytopes; verified exact to machine precision
-    in tests/test_planner_reduction.py).  So the planner collapses to a single
-    separable QP in y.
+    With no deferral penalty C depends on x only through y, so one is tempted
+    to replace the product set prod_i X_i by the single set carrying the summed
+    parameters (E = sum E_i, u = sum u_i, R = sum R_i) and solve one QP in y.
+
+    THAT SET IS A STRICT RELAXATION IN GENERAL.  These feasible sets are base
+    polytopes of laminar polymatroids (the constraints are a chain of suffixes
+    plus a partition into singletons), and the Minkowski sum of base polytopes
+    is the base polytope of the SUM OF THE RANK FUNCTIONS -- which is not the
+    rank function built from the summed bounds, because
+    min(a1,b1) + min(a2,b2) can be strictly less than min(a1+a2, b1+b2).
+    Concretely, with u_1 = (5,5), E_1 = 1 and u_2 = (3,3), E_2 = 5, no profile
+    puts more than 1 + 3 = 4 units in slot 1 while the relaxation allows 6.
+    Equality holds when every operator has the same E/u ratio and the same
+    deadline staircase; `tests/test_planner_reduction.py` pins both directions.
+
+    So this returns a LOWER bound on the planner's cost.  Use `planner_value`
+    for anything reported; this is kept because the cliff solver and the bound
+    scans need a cheap aggregate scan range, and because `planner_value` uses
+    it as a certificate.
     """
     from .core import Feasible
     agg = Feasible(E=sum(X.E for X in inst.X),
@@ -117,44 +147,76 @@ def planner_aggregate(inst: Instance):
     return solve_sep_qp(inst.m, inst.b, agg)
 
 
-def planner_value(inst: Instance):
-    """C(x*), exactly.
+def _planner_bcd(inst: Instance, ftol=1e-13, max_sweeps=5000, patience=3):
+    """Exact block minimisation of C over prod_i X_i, stopped on the OBJECTIVE.
 
-    Returned as a VALUE rather than a profile: with lam = 0 every feasible
-    decomposition of y* attains it, and constructing one by per-operator
-    projection is wrong -- projection does not preserve the aggregate, which
-    silently perturbs the normaliser.  (That bug made SHADE appear to beat the
-    planner by 5e-5 before it was caught.)
+    With lam = 0, C depends on x only through the aggregate y, so the minimiser
+    is a face rather than a point and the ITERATE need not converge even though
+    the value does: cyclic block descent slides along the face indefinitely.
+    Stopping on ||x^(k) - x^(k-1)|| therefore never fires, which is how a
+    tolerance of 1e-12 turned a three-sweep solve into an unbounded loop.  Each
+    block subproblem is strictly convex (curvature b_t > 0) so its minimiser is
+    unique, and cyclic block descent on a convex differentiable objective over a
+    Cartesian product of compact convex sets converges in value to the global
+    minimum; that value is what every ratio in the paper divides by.
     """
-    if np.allclose(inst.lam, 0.0):
-        y = planner_aggregate(inst)
-        return float(np.sum(inst.m * y + inst.b * y ** 2))
-    return inst.social(planner(inst, tol=1e-9)[0])
-
-
-def _planner_fast(inst: Instance):
-    """A feasible planner PROFILE.  Only needed where a profile is required
-    (e.g. the quota baseline); ratios should use planner_value."""
-    if np.allclose(inst.lam, 0.0):
-        y = planner_aggregate(inst)
-        # decompose y greedily: give each operator as much as its set allows
-        x = np.zeros((inst.n, inst.T))
-        rem = y.copy()
-        for i in np.argsort([-X.E for X in inst.X]):
-            Xi = inst.X[i]
-            xi = solve_sep_qp(-2.0 * np.minimum(rem, Xi.u) - 1e-12,
-                              np.ones(inst.T), Xi)
-            xi = np.minimum(xi, rem)
-            deficit = Xi.E - xi.sum()
-            if deficit > 1e-9:            # top up where headroom remains
-                room = np.minimum(Xi.u - xi, rem - xi)
-                room = np.maximum(room, 0.0)
-                if room.sum() > 1e-12:
-                    xi = xi + room * min(1.0, deficit / room.sum())
+    x = inst.feasible_start()
+    y = x.sum(axis=0)
+    prev = inst.social(x)
+    flat = 0
+    for sweep in range(max_sweeps):
+        for i in range(inst.n):
+            s = y - x[i]
+            xi = solve_sep_qp(inst.m + 2.0 * inst.b * s
+                              + inst.lam[i] * inst.psi[i], inst.b, inst.X[i])
+            y = s + xi
             x[i] = xi
-            rem = np.maximum(rem - xi, 0.0)
-        return x
-    return planner(inst, tol=1e-9)[0]
+        cur = inst.social(x)
+        if prev - cur <= ftol * max(1.0, abs(prev)):
+            flat += 1
+            if flat >= patience:
+                return x, sweep + 1
+        else:
+            flat = 0
+        prev = cur
+    return x, max_sweeps
+
+
+def planner_value(inst: Instance, ftol=1e-13):
+    """C(x*), the true social optimum over prod_i X_i.
+
+    Computed by `_planner_bcd` above, which stops on the objective rather
+    than on the iterate; `tests/test_planner_reduction.py` checks the value
+    against SciPy SLSQP.
+
+    History.  This used to return the aggregate relaxation of
+    `planner_aggregate` whenever lam = 0.  That relaxation is not tight when
+    operators have different deadline staircases, which they do in every
+    experiment here, and it understated C(x*) by 0.5-0.9% on the calibrated
+    instances -- inflating every ratio reported against it, including the
+    equilibrium gap and the share of that gap the mechanism removes.  The
+    relaxation is retained below only as a lower-bound certificate.
+    """
+    x = _planner_bcd(inst, ftol=ftol)[0]
+    v = inst.social(x)
+    if np.allclose(inst.lam, 0.0):
+        lb = float(np.sum(inst.m * (y := planner_aggregate(inst)) + inst.b * y ** 2))
+        if v < lb - 1e-7 * max(1.0, abs(lb)):
+            raise RuntimeError(
+                f"planner_value {v!r} below the aggregate relaxation {lb!r}")
+    return float(v)
+
+
+def _planner_fast(inst: Instance, ftol=1e-13):
+    """A feasible planner PROFILE attaining C(x*).
+
+    Only needed where a profile is required (the quota baseline, the
+    operational metrics); ratios should use `planner_value`.  This used to
+    decompose the aggregate relaxation greedily, which returned profiles that
+    failed `Feasible.check` on 299 of 300 random instances; it now runs the
+    same exact block descent as `planner_value`.
+    """
+    return _planner_bcd(inst, ftol=ftol)[0]
 
 
 REGISTRY = {

@@ -135,44 +135,119 @@ def _waterfill(q, c, E, u):
     return x
 
 
-def solve_sep_qp(q, c, X: Feasible):
-    """min sum_t (q_t x_t + c_t x_t^2) over X.
+def _solve_on_active_set(q, c, u, E, R, A):
+    """Minimise over the box, the total-energy equality, AND the prefix
+    constraints in `A` forced to EQUALITY.  The forced equalities cut the
+    horizon into independent segments, each a plain water-filling problem.
 
-    Handles the deadline staircase by polymatroid decomposition: the feasible
-    set's tight sets are prefixes, so we solve the box+equality relaxation,
-    find the most-violated prefix, force it tight, and recurse on the two
-    halves.  Validated against scipy SLSQP in tests/test_solver.py.
+    Raises ValueError if a segment cannot carry the energy the equalities
+    demand of it, which is how an infeasible guess at the active set is
+    detected.
+    """
+    idx = sorted(A)
+    x = np.empty(len(q))
+    lo, carried = 0, 0.0
+    for k in idx:
+        hi = k + 1
+        seg_E = R[k] - carried
+        x[lo:hi] = _waterfill(q[lo:hi], c[lo:hi], seg_E, u[lo:hi])
+        carried = R[k]
+        lo = hi
+    if lo < len(q):
+        x[lo:] = _waterfill(q[lo:], c[lo:], E - carried, u[lo:])
+    return x
+
+
+def solve_sep_qp(q, c, X: Feasible, _tol=1e-11):
+    """min sum_t (q_t x_t + c_t x_t^2) over X, exactly.
+
+    The deadline staircase is handled by a primal ACTIVE-SET method over the
+    prefix constraints.  Starting from none of them forced, we repeatedly force
+    the most-violated prefix to equality; when the iterate is feasible we test
+    each forced constraint for release and drop any whose removal both keeps
+    feasibility and lowers the objective.  The forced equalities partition the
+    horizon, so every subproblem is one water-filling call.
+
+    The release step is the part that matters, and it is here because leaving
+    it out is wrong.  An earlier version forced the most-violated prefix and
+    recursed without ever reconsidering, on the reasoning that a constraint
+    violated by the relaxation must be active at the optimum.  That is true of
+    a single constraint and false of a chain of them: forcing prefix k to carry
+    EXACTLY R_k also forbids it from carrying more, and when a shorter prefix
+    is separately forced, or when the curvature c_t varies enough across slots
+    to move where the relaxation puts its mass, the optimum wants more than
+    R_k there.  E11's trace-derived feasible sets -- envelopes read off
+    measured peak concurrency, staircases from a short deferral horizon
+    against a bursty arrival profile -- hit exactly that case, and the old
+    routine returned a point 1.5% above the block optimum, which showed up as a
+    social cost BELOW the planner's, an impossibility that is what exposed it.
+    Random instances with a flat envelope and a smooth staircase, which is what
+    the synthetic generator produces and what tests/test_solver.py sampled,
+    never triggered it.  `tests/test_solver.py` now carries that instance and
+    samples the family it came from.
     """
     q = np.asarray(q, float)
     c = np.asarray(c, float)
     if np.any(c <= 0):
         raise ValueError("solve_sep_qp needs strictly positive curvature; "
                          "use solve_sep_lp for linear objectives")
-
-    def rec(lo_i, hi_i, E, R):
-        """slots [lo_i, hi_i) must carry exactly E; R is the local staircase."""
-        n = hi_i - lo_i
-        if n == 0:
-            return np.zeros(0)
-        x = _waterfill(q[lo_i:hi_i], c[lo_i:hi_i], E, X.u[lo_i:hi_i])
-        if R is None:
-            return x
-        viol = R - np.cumsum(x)
-        k = int(np.argmax(viol))
-        if viol[k] <= 1e-11 * max(1.0, E):
-            return x
-        # prefix [lo_i, lo_i+k] must be tight at R[k]
-        left = rec(lo_i, lo_i + k + 1, R[k], R[:k + 1] if k > 0 else None)
-        right = rec(lo_i + k + 1, hi_i, E - R[k],
-                    (R[k + 1:] - R[k]) if k + 1 < n else None)
-        return np.concatenate([left, right])
-
     R = X.R
     if R is not None:
         R = np.maximum(R, 0.0)
         if R.max() <= 1e-12:
             R = None
-    return rec(0, X.T, X.E, R)
+    if R is None:
+        return _waterfill(q, c, X.E, X.u)
+
+    u, E = X.u, X.E
+    obj = lambda z: float(q @ z + c @ (z * z))          # noqa: E731
+    # Seed with the greedy set the old recursion would have chosen.  It is
+    # usually the right active set and always a feasible one, so the loop below
+    # normally has only release steps left to do; seeding cuts the number of
+    # water-filling calls by about half against starting from the empty set.
+    A = set()
+    x = _waterfill(q, c, E, u)
+    for _ in range(len(q)):
+        viol = R - np.cumsum(x)
+        k = int(np.argmax(viol))
+        if viol[k] <= _tol * max(1.0, E) or k in A:
+            break
+        A.add(k)
+        try:
+            x = _solve_on_active_set(q, c, u, E, R, A)
+        except ValueError:
+            A.discard(k)
+            x = _solve_on_active_set(q, c, u, E, R, A)
+            break
+    for _ in range(4 * len(q) + 8):
+        viol = R - np.cumsum(x)
+        k = int(np.argmax(viol))
+        if viol[k] > _tol * max(1.0, E):
+            if k in A:                                   # cannot make progress
+                break
+            A.add(k)
+            try:
+                x = _solve_on_active_set(q, c, u, E, R, A)
+            except ValueError:
+                A.discard(k)
+                break
+            continue
+        # feasible: try to release each forced constraint
+        improved = False
+        for k in sorted(A):
+            try:
+                z = _solve_on_active_set(q, c, u, E, R, A - {k})
+            except ValueError:
+                continue
+            if np.all(np.cumsum(z) >= R - _tol * max(1.0, E)) \
+                    and obj(z) < obj(x) - 1e-13 * max(1.0, abs(obj(x))):
+                A.discard(k)
+                x = z
+                improved = True
+                break
+        if not improved:
+            return x
+    return x
 
 
 def solve_sep_lp(q, X: Feasible):
@@ -276,12 +351,33 @@ class Instance:
 # --------------------------------------------------------------------------
 
 def _br_loop(inst: Instance, lin_coef, x0=None, damp=1.0, iters=4000,
-             tol=1e-10, order="cyclic", rng=None):
-    """Gauss-Seidel best response.  lin_coef(i, s) returns the linear
-    coefficient vector for operator i given the others' aggregate s."""
+             tol=1e-10, order="cyclic", rng=None, obj=None, ftol=1e-11,
+             patience=2):
+    """Gauss-Seidel best response.  `lin_coef(i, s)` returns the linear
+    coefficient vector for operator i given the others' aggregate s.
+
+    Two stopping rules, and which one is right depends on the objective.
+
+      * On the ITERATE (`tol`), the historical rule.  Correct when the
+        objective is strictly convex in the full profile.
+      * On the OBJECTIVE VALUE (`obj`, `ftol`), used when it is not.
+
+    The distinction is not cosmetic.  The measured curvatures span three orders
+    of magnitude -- CAISO's beta runs from 5e-6 to 8e-3 across the day, because
+    the estimated marginal factor barely moves with load in half the hours --
+    so the potential is nearly flat in those coordinates and the iterate crawls
+    while the value has already converged to twelve digits.  Waiting on the
+    iterate turned a four-second solve into one that did not finish.  Where a
+    caller passes `obj`, convergence is declared when the objective stops
+    improving for `patience` consecutive sweeps, and the caller is expected to
+    check the residual it actually cares about (for an equilibrium: the largest
+    profitable unilateral deviation, which `max_gain` below reports).
+    """
     x = inst.feasible_start() if x0 is None else x0.copy()
     y = x.sum(axis=0)
     idx = np.arange(inst.n)
+    prev = obj(x) if obj is not None else None
+    flat = 0
     for it in range(iters):
         delta = 0.0
         if order == "random":
@@ -294,9 +390,33 @@ def _br_loop(inst: Instance, lin_coef, x0=None, damp=1.0, iters=4000,
             delta = max(delta, float(np.max(np.abs(xi - x[i]))))
             y = s + xi
             x[i] = xi
-        if delta <= tol * max(1.0, float(np.max(np.abs(x)))):
+        if obj is not None:
+            cur = obj(x)
+            if prev - cur <= ftol * max(1.0, abs(prev)):
+                flat += 1
+                if flat >= patience:
+                    return x, it + 1
+            else:
+                flat = 0
+            prev = cur
+        elif delta <= tol * max(1.0, float(np.max(np.abs(x)))):
             return x, it + 1
     return x, iters
+
+
+def max_gain(inst: Instance, x, lin_coef, curv=None):
+    """Largest improvement any single operator can make, as a fraction of the
+    objective the loop was minimising.  This is the residual that matters for an
+    equilibrium claim, and it is what the tests check."""
+    c = inst.b if curv is None else curv
+    y = x.sum(axis=0)
+    best = 0.0
+    for i in range(inst.n):
+        s = y - x[i]
+        xi = solve_sep_qp(lin_coef(i, s), c, inst.X[i])
+        xa = x.copy(); xa[i] = xi
+        best = max(best, inst.agent_cost(x, i) - inst.agent_cost(xa, i))
+    return best
 
 
 def nash(inst: Instance, signal=None, **kw):
@@ -310,6 +430,7 @@ def nash(inst: Instance, signal=None, **kw):
     def lin(i, s):
         return A[i] + inst.b * s + inst.lam[i] * inst.psi[i]
 
+    kw.setdefault("obj", inst.potential)
     return _br_loop(inst, lin, **kw)
 
 
@@ -318,6 +439,7 @@ def planner(inst: Instance, **kw):
     def lin(i, s):
         return inst.m + 2.0 * inst.b * s + inst.lam[i] * inst.psi[i]
 
+    kw.setdefault("obj", inst.social)
     return _br_loop(inst, lin, **kw)
 
 
@@ -339,6 +461,7 @@ def wedge_fixed(inst: Instance, **kw):
     def lin(i, s):
         return inst.m + inst.b * s + inst.lam[i] * inst.psi[i]
 
+    kw.setdefault("obj", lambda x: inst.social(x))
     return _br_loop(inst, lin, **kw)
 
 

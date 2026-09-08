@@ -2,7 +2,7 @@
   "eid": "V8",
   "title": "Misreporting of intentions",
   "provenance": "SYNTHETIC",
-  "git": "81785e2",
+  "git": "07cd022",
   "config": {
     "ns": [
       2,
@@ -69,5 +69,5 @@
       "p2m_manip": 11.199061581600725
     }
   ],
-  "runtime_s": 8.7
+  "runtime_s": 5.1
 }

@@ -5,4 +5,4 @@ cliff : 27 instances | PoA/bound max 0.3197 | rho range 2.71-3.77 | PoA max 1.55
 
 bound violations: 0 / 54    worst PoA/bound = 0.3327
 (*) survives falsification on every instance tried.
-wrote C:\Users\adeel\OneDrive\Desktop\AAMAS CONFERNCE PAPER\green-hour\experiments\..\results\V13.json
+wrote results\V13.json

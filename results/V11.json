@@ -6,68 +6,68 @@
     {
       "kappa": 1.0,
       "jump": 3.0,
-      "nash": 1.1266748303886556,
+      "nash": 1.1266748810516207,
       "shade_smooth": 1.0069295329140742,
       "gamma_n_smooth": 1.35,
       "shade_cliff": 1.0007628776890756,
       "gamma_n_cliff": 0.9,
-      "removed_smooth": 0.9452966868571017,
-      "removed_cliff": 0.9939776695438631
+      "removed_smooth": 0.9452967087354095,
+      "removed_cliff": 0.9939776719524631
     },
     {
       "kappa": 1.0,
       "jump": 6.0,
-      "nash": 1.2096153907235923,
+      "nash": 1.2096155030086095,
       "shade_smooth": 1.0327972670189465,
       "gamma_n_smooth": 1.35,
       "shade_cliff": 1.0077268804975903,
       "gamma_n_cliff": 0.5,
-      "removed_smooth": 0.8435359784139403,
-      "removed_cliff": 0.9631378188838277
+      "removed_smooth": 0.8435360622272323,
+      "removed_cliff": 0.9631378386298416
     },
     {
       "kappa": 1.0,
       "jump": 12.0,
-      "nash": 1.3826285202137247,
+      "nash": 1.3826287482607809,
       "shade_smooth": 1.0974109333720683,
       "gamma_n_smooth": 1.35,
       "shade_cliff": 1.0405476691128572,
       "gamma_n_cliff": 0.25,
-      "removed_smooth": 0.7454164333655591,
-      "removed_cliff": 0.8940286283672515
+      "removed_smooth": 0.7454165850975792,
+      "removed_cliff": 0.8940286915262783
     },
     {
       "kappa": 2.0,
       "jump": 3.0,
-      "nash": 1.1397734560730857,
+      "nash": 1.1397735666961721,
       "shade_smooth": 1.0066843490210868,
       "gamma_n_smooth": 1.8,
       "shade_cliff": 1.0009715115481796,
       "gamma_n_cliff": 0.9,
-      "removed_smooth": 0.952177264490107,
-      "removed_cliff": 0.9930493845149564
+      "removed_smooth": 0.9521773023391704,
+      "removed_cliff": 0.9930493900159861
     },
     {
       "kappa": 2.0,
       "jump": 6.0,
-      "nash": 1.2490103516101079,
+      "nash": 1.2490106193690842,
       "shade_smooth": 1.0347332962285334,
       "gamma_n_smooth": 1.8,
       "shade_cliff": 1.0098624077215432,
       "gamma_n_cliff": 0.5,
-      "removed_smooth": 0.8605146492748317,
-      "removed_cliff": 0.9603935834081891
+      "removed_smooth": 0.8605147992622291,
+      "removed_cliff": 0.9603936259966281
     },
     {
       "kappa": 2.0,
       "jump": 12.0,
-      "nash": 1.462203480576338,
+      "nash": 1.4622040287255675,
       "shade_smooth": 1.1015511594522427,
       "gamma_n_smooth": 1.8,
       "shade_cliff": 1.023960320558021,
       "gamma_n_cliff": 0.25,
-      "removed_smooth": 0.7802890637569087,
-      "removed_cliff": 0.9481606661028514
+      "removed_smooth": 0.7802893243223148,
+      "removed_cliff": 0.9481607275815257
     }
   ],
   "note": "SYNTHETIC; SHADE evaluated against the piecewise response"

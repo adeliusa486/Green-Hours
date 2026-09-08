@@ -80,4 +80,4 @@ out = os.path.join(os.path.dirname(__file__), "..", "results", "V9.json")
 json.dump({"n": N, "T": T, "seeds": SEEDS, "rows": rows,
            "note": "SYNTHETIC; parameterises the Plan A/B gate, does not replace E1"},
           open(out, "w"), indent=2)
-print(f"wrote {out}")
+print(f"wrote {os.path.relpath(out)}")

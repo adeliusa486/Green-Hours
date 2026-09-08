@@ -125,4 +125,4 @@ out = os.path.join(os.path.dirname(__file__), "..", "results", "V13.json")
 json.dump({"rows": rows, "violations": viol, "worst_frac": worst,
            "note": "SYNTHETIC falsification of the generalised PoA bound"},
           open(out, "w"), indent=2)
-print(f"wrote {out}")
+print(f"wrote {os.path.relpath(out)}")

@@ -1,0 +1,22 @@
+loading EIA-930 ...
+
+E4  operational metrics (mean over 3 regions x 6 seeds)
+Method                  peak/mean    uplift   viol   kB/op/d
+------------------------------------------------------------
+Carbon-agnostic              1.79     3.529      0       0.0
+Independent greedy           5.11     4.291      0       0.0
+Threshold deferral           7.46    22.376      0       0.0
+Randomized jitter            3.02     4.485      0       0.0
+SHADE (ours)                 6.00     6.475      0      30.0
+
+E7  ablation (ratio to planner)
+Configuration                      ratio   vs full
+----------------------------------------------------
+Full SHADE                        1.0064          
+No externality adder              1.0692     +6.28
+No own-load subtraction           1.0064     +0.00
+No own-congestion term            1.0064     +0.00
+No damping ($\gamma=1$)           1.0250     +1.86
+Adder coarsened to 3\,h           1.0399     +3.36
+
+wrote results\E4_E7.json

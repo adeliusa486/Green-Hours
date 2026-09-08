@@ -1,3 +1,14 @@
 __pycache__/
 *.pyc
+
+# Public but large source data, fetched rather than committed.
+# data/README.md carries the URLs, retrieval dates and SHA-256 sums.
 data/*.csv
+data/azure2019/*.csv.gz
+
+# Throwaway probes from the September 2026 audit: they diagnose a bug and are
+# superseded by the regression tests in tests/, so they are not part of the
+# artifact.
+experiments/_probe_*.py
+experiments/_timing_probe.py
+experiments/_bad_block.npz

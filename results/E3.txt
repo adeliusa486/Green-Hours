@@ -16,4 +16,4 @@ SHADE (ours)               1.0066   1.0061   1.0065   1.0064    90.8%
 Responsive MEF             1.0066   1.0061   1.0065   1.0064    90.8%
 Planner (oracle)           1.0000   1.0000   1.0000   1.0000   100.0%
 
-wrote C:\Users\adeel\OneDrive\Desktop\AAMAS CONFERNCE PAPER\green-hour\experiments\..\results\E3.json
+wrote results\E3.json

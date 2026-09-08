@@ -86,7 +86,14 @@ def test_nash_is_an_equilibrium():
 
 def test_uniqueness_from_random_starts():
     """Proposition 1: Phi strictly convex => unique equilibrium.  Best response
-    from many random feasible starts must land on the same profile."""
+    from many random feasible starts must land on the same profile.
+
+    Uniqueness is a mathematical claim, so this check is run at a tighter
+    objective tolerance than the default.  The default (ftol = 1e-11) is chosen
+    for experiment runtime and leaves a profile spread of about 2e-5 on this
+    instance -- which is a convergence residual, not a second equilibrium: the
+    largest profitable unilateral deviation there is 3e-11 relative.  At
+    ftol = 1e-15 the spread collapses to the value asserted below."""
     rng = np.random.default_rng(5)
     inst = make_instance(n=8, T=32, seed=5, kappa=1.3, lam=0.25)
     ref = None
@@ -95,7 +102,8 @@ def test_uniqueness_from_random_starts():
         x0 = np.zeros((inst.n, inst.T))
         for i in range(inst.n):
             x0[i] = solve_sep_qp(rng.normal(0, 100, inst.T), inst.b, inst.X[i])
-        x, _ = nash(inst, x0=x0, order="random", rng=rng)
+        x, _ = nash(inst, x0=x0, order="random", rng=rng,
+                    ftol=1e-15, patience=6)
         if ref is None:
             ref = x
         else:

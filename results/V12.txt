@@ -48,6 +48,6 @@
      aggregation error       0.25 |   1.0600   1.0032     94.6%
 
 SHADE removes 94.6%-100.0% of the gap across all 39 configurations (median 100.0%).
-wrote C:\Users\adeel\OneDrive\Desktop\AAMAS CONFERNCE PAPER\green-hour\experiments\..\results\V12.json
+wrote results\V12.json
 
 [exited with code 0]

@@ -112,4 +112,4 @@ out = os.path.join(os.path.dirname(__file__), "..", "results", "V12.json")
 json.dump({"T": T, "seeds": SEEDS, "ref": REF, "rows": rows,
            "note": "SYNTHETIC; one axis at a time, smooth response"},
           open(out, "w"), indent=2)
-print(f"wrote {out}")
+print(f"wrote {os.path.relpath(out)}")
