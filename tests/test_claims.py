@@ -154,6 +154,22 @@ CLAIMS = [
      "regions/CISO/drop/nash_over_planner", 1.0063, 5e-4),
     ("V14 ERCOT gap, hours struck", "V14.json",
      "regions/ERCO/drop/nash_over_planner", 1.0395, 5e-4),
+    # ---- V15: the paired tests Table 1's caption now quotes --------------
+    # The one comparison the paper declines to call a difference.  If a later
+    # change makes this significant, the caption and Section 7.1 both become
+    # wrong, and they should fail here first.
+    ("V15 carbon-agnostic is NOT separable from the equilibrium",
+     "V15.json", "tests/Carbon-agnostic/significant_at_05", False, 0),
+    ("V15 carbon-agnostic p-value", "V15.json",
+     "tests/Carbon-agnostic/p_value", 0.94, 0.02),
+    ("V15 pairs compared", "V15.json",
+     "tests/Carbon-agnostic/n_pairs", 60, 0),
+    ("V15 naive forecast-taking IS worse", "V15.json",
+     "tests/Naive forecast-taking/significant_at_05", True, 0),
+    ("V15 SHADE IS better", "V15.json",
+     "tests/SHADE (ours)/significant_at_05", True, 0),
+    ("V15 jitter IS better, as Table 1 says", "V15.json",
+     "tests/Randomized jitter/significant_at_05", True, 0),
 ]
 
 

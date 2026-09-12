@@ -1,0 +1,98 @@
+{
+  "provenance": {
+    "seeds": 20,
+    "regions": [
+      "CISO",
+      "ERCO",
+      "PJM"
+    ],
+    "reference": "Independent greedy",
+    "what": "paired Wilcoxon of each method against the equilibrium, over seeds x regions"
+  },
+  "tests": {
+    "Carbon-agnostic": {
+      "n_pairs": 60,
+      "mean_diff": -0.0018506775190619015,
+      "ci95": [
+        -0.005470055328643803,
+        0.00176870029052
+      ],
+      "wilcoxon_W": 904.0,
+      "p_value": 0.9354597403431613,
+      "cohens_dz": -0.1293830176689601,
+      "significant_at_05": false
+    },
+    "Naive forecast-taking": {
+      "n_pairs": 60,
+      "mean_diff": 0.007732906545073074,
+      "ci95": [
+        0.005028538925825762,
+        0.010437274164320385
+      ],
+      "wilcoxon_W": 26.0,
+      "p_value": 5.970871816020806e-11,
+      "cohens_dz": 0.7235315616269244,
+      "significant_at_05": true
+    },
+    "Static MEF signalling": {
+      "n_pairs": 60,
+      "mean_diff": -0.04187962298899614,
+      "ci95": [
+        -0.047741422528400974,
+        -0.036017823449591306
+      ],
+      "wilcoxon_W": 0.0,
+      "p_value": 1.6295557943119345e-11,
+      "cohens_dz": -1.8078077635334264,
+      "significant_at_05": true
+    },
+    "Threshold deferral": {
+      "n_pairs": 60,
+      "mean_diff": 0.01895108267012047,
+      "ci95": [
+        0.013489958312090568,
+        0.024412207028150373
+      ],
+      "wilcoxon_W": 210.0,
+      "p_value": 2.1037302037925465e-07,
+      "cohens_dz": 0.8780766048263061,
+      "significant_at_05": true
+    },
+    "Randomized jitter": {
+      "n_pairs": 60,
+      "mean_diff": -0.0017469620938195597,
+      "ci95": [
+        -0.0026933415008471547,
+        -0.0008005826867919645
+      ],
+      "wilcoxon_W": 471.0,
+      "p_value": 0.0010809941395103183,
+      "cohens_dz": -0.4670879314479897,
+      "significant_at_05": true
+    },
+    "SHADE (ours)": {
+      "n_pairs": 60,
+      "mean_diff": -0.04191276232952316,
+      "ci95": [
+        -0.04776475308785847,
+        -0.036060771571187845
+      ],
+      "wilcoxon_W": 0.0,
+      "p_value": 1.6295557943119345e-11,
+      "cohens_dz": -1.8122708260636413,
+      "significant_at_05": true
+    },
+    "Responsive MEF": {
+      "n_pairs": 60,
+      "mean_diff": -0.04191209776918201,
+      "ci95": [
+        -0.04776402242329459,
+        -0.036060173115069434
+      ],
+      "wilcoxon_W": 0.0,
+      "p_value": 1.6295557943119345e-11,
+      "cohens_dz": -1.812262562421177,
+      "significant_at_05": true
+    }
+  }
+}
