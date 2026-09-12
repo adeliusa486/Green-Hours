@@ -8,7 +8,7 @@
       "kb": 0.0
     },
     "Independent greedy": {
-      "p2m": 5.214827201814546,
+      "p2m": 5.214827201814547,
       "uplift": 1.77261095331945,
       "viol": 0,
       "kb": 0.0
@@ -33,11 +33,11 @@
     }
   },
   "E7": {
-    "Full SHADE": 1.000000059866085,
-    "No externality adder": 1.0419127328848183,
-    "No own-load subtraction": 1.0000006462032451,
-    "No own-congestion term": 1.000000479211477,
-    "No damping ($\\gamma=1$)": 1.0003484926486867,
-    "Adder coarsened to 3\\,h": 1.0212231710627022
+    "Full SHADE": 1.0000000598660852,
+    "No externality adder": 1.0419127328848188,
+    "No own-load subtraction": 1.0000006462032454,
+    "No own-congestion term": 1.0000004792114772,
+    "No damping ($\\gamma=1$)": 1.0003484926486872,
+    "Adder coarsened to 3\\,h": 1.0212231710627024
   }
 }
