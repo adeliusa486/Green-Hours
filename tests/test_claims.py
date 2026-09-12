@@ -132,6 +132,28 @@ CLAIMS = [
      "summary/n_enash_violations", 0, 0),
     ("E10 global convergence is NOT claimed", "E10.json",
      "global_convergence_proved", False, 0),
+    # ---- V14: the beta-clipping sensitivity Section 6 now reports ---------
+    # eta contains no beta, so all three arms must agree to four decimals.
+    # If a future change makes these differ, the sentence in Section 6 is
+    # wrong and should fail here before a reviewer finds it.
+    ("V14 CAISO eta, clipped", "V14.json",
+     "regions/CISO/clip/eta_active", 0.6711, 5e-4),
+    ("V14 CAISO eta, clipped hours struck from the horizon", "V14.json",
+     "regions/CISO/drop/eta_active", 0.6711, 5e-4),
+    ("V14 CAISO clipped hours inside the active set", "V14.json",
+     "regions/CISO/clip/clipped_hours_in_A", 8.0, 1e-9),
+    ("V14 ERCOT clipped hours inside the active set", "V14.json",
+     "regions/ERCO/clip/clipped_hours_in_A", 3.0, 1e-9),
+    ("V14 PJM clipped hours inside the active set", "V14.json",
+     "regions/PJM/clip/clipped_hours_in_A", 0.0, 1e-9),
+    # clipping must OVERSTATE the gap, never understate it: dropping those
+    # hours has to leave the equilibrium no further from the planner.
+    ("V14 CAISO gap, clipped", "V14.json",
+     "regions/CISO/clip/nash_over_planner", 1.0138, 5e-4),
+    ("V14 CAISO gap, hours struck", "V14.json",
+     "regions/CISO/drop/nash_over_planner", 1.0063, 5e-4),
+    ("V14 ERCOT gap, hours struck", "V14.json",
+     "regions/ERCO/drop/nash_over_planner", 1.0395, 5e-4),
 ]
 
 

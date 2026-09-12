@@ -38,6 +38,8 @@ pytest file, not a document.
 | Deployment threshold (static signal stops sufficing) | §7 | `E9_threshold.py` (dense) and `E5_when_mechanism_matters.py` (coarse, superseded) | same | `results/E9.json` | — |
 | Threshold sensitivity to n, heterogeneity, deadlines, envelope, β | §7, Tab. S7 | `E9_threshold.py` §B | same | `results/E9.json` | — |
 | Threshold under alternative MEF specifications | §7 | `E9_threshold.py` §C | E8 profiles | `results/E9.json` | — |
+| β clipped in 14/3/0 bins, 8/3/0 of them inside 𝒜; η unchanged across arms; striking those hours shrinks the gap 1.38→0.63% (CAISO), 4.23→3.95% (ERCOT) | §6 | `V14_beta_clip_sensitivity.py` | EIA-930 | `results/V14.json` | `test_claims.py` |
+| Paired tests against the equilibrium for every Table 1 row | §7 | `V15_paired_tests.py` | E3 instances | `results/V15.json` | — |
 | Trace-derived workload: sizes, ρ̄ = 4.5%, envelopes, arrival shape | §6 | `derive_azure_workload.py` | `data/azure2019/vmtable.csv.gz` | `data/azure2019/derived_workload.json` | parse check vs Microsoft's published CDF, in the JSON |
 | Table 1 methods on the trace workload; 24 diurnal alignments | §7, Tab. S6 | `E11_trace_workload.py` | above + E1 profiles | `results/E11.json` | — |
 | Convergence rate \|1−γ\|, interior fraction ≈ 6–16% | §5.3, Tab. S8 | `E10_convergence.py` | generated | `results/E10.json` | `test_claims.py` |

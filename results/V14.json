@@ -1,0 +1,107 @@
+{
+  "provenance": {
+    "seeds": 20,
+    "n": 32,
+    "T": 24,
+    "flex_share": 0.0038,
+    "what": "sensitivity of eta and the equilibrium gap to clipping negative measured curvature"
+  },
+  "regions": {
+    "CISO": {
+      "clip": {
+        "eta_active": 0.6710677024208036,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 4.560208927610241,
+        "nash_over_planner": 1.0138494039316523,
+        "nash_over_planner_sd": 0.000709598393266592,
+        "clipped_hours_in_A": 8.0,
+        "hours_kept": 24,
+        "n_beta_negative": 14
+      },
+      "exclude": {
+        "eta_active": 0.6710677024208036,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 4.560208927610241,
+        "nash_over_planner": 1.0138494039316523,
+        "nash_over_planner_sd": 0.000709598393266592,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 24,
+        "n_beta_negative": 14
+      },
+      "drop": {
+        "eta_active": 0.6710677024208036,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 4.560208927610241,
+        "nash_over_planner": 1.0062547105257575,
+        "nash_over_planner_sd": 0.0009975595037202802,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 10,
+        "n_beta_negative": 14
+      }
+    },
+    "ERCO": {
+      "clip": {
+        "eta_active": 0.4920374359541947,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 2.9529735184672745,
+        "nash_over_planner": 1.0423374387602542,
+        "nash_over_planner_sd": 0.0027399075966091833,
+        "clipped_hours_in_A": 3.0,
+        "hours_kept": 24,
+        "n_beta_negative": 3
+      },
+      "exclude": {
+        "eta_active": 0.4920374359541947,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 2.9529735184672745,
+        "nash_over_planner": 1.0423374387602542,
+        "nash_over_planner_sd": 0.0027399075966091833,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 24,
+        "n_beta_negative": 3
+      },
+      "drop": {
+        "eta_active": 0.4920374359541947,
+        "eta_active_sd": 1.1102230246251565e-16,
+        "poa_bound": 2.9529735184672745,
+        "nash_over_planner": 1.039510389067169,
+        "nash_over_planner_sd": 0.002436316635690778,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 21,
+        "n_beta_negative": 3
+      }
+    },
+    "PJM": {
+      "clip": {
+        "eta_active": 0.41729360013866124,
+        "eta_active_sd": 0.008698862969427944,
+        "poa_bound": 2.574195169912225,
+        "nash_over_planner": 1.0695514442979681,
+        "nash_over_planner_sd": 0.004268478785416188,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 24,
+        "n_beta_negative": 0
+      },
+      "exclude": {
+        "eta_active": 0.41729360013866124,
+        "eta_active_sd": 0.008698862969427944,
+        "poa_bound": 2.574195169912225,
+        "nash_over_planner": 1.0695514442979681,
+        "nash_over_planner_sd": 0.004268478785416188,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 24,
+        "n_beta_negative": 0
+      },
+      "drop": {
+        "eta_active": 0.41729360013866124,
+        "eta_active_sd": 0.008698862969427944,
+        "poa_bound": 2.574195169912225,
+        "nash_over_planner": 1.0695514442979681,
+        "nash_over_planner_sd": 0.004268478785416188,
+        "clipped_hours_in_A": 0.0,
+        "hours_kept": 24,
+        "n_beta_negative": 0
+      }
+    }
+  }
+}

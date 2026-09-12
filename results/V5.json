@@ -2,7 +2,7 @@
   "eid": "V5",
   "title": "PoA bound and scaling",
   "provenance": "SYNTHETIC",
-  "git": "07cd022",
+  "git": "8c8bf96",
   "config": {},
   "cfg_hash": "44136fa355b3",
   "scalars": {
@@ -611,9 +611,9 @@
     {
       "part": "bound",
       "n": 18,
-      "ratio": 1.0069881398491307,
+      "ratio": 1.0069881398491305,
       "bound": 3.2494628141012742,
-      "frac_of_bound": 0.3098937262735349
+      "frac_of_bound": 0.30989372627353484
     },
     {
       "part": "bound",
@@ -906,8 +906,8 @@
     {
       "part": "scaling_n",
       "n": 64,
-      "total": 0.06108735737826482,
-      "accounting": 0.053442158786195404,
+      "total": 0.061087357378264484,
+      "accounting": 0.05344215878619507,
       "strategic": 0.007645198592069413
     },
     {
@@ -941,17 +941,17 @@
     {
       "part": "scaling_share",
       "flex_scale": 8,
-      "total": 0.045191571997418245,
-      "accounting": 0.03593785835653995,
-      "strategic": 0.009253713640878292
+      "total": 0.04519157199741769,
+      "accounting": 0.03593785835653962,
+      "strategic": 0.00925371364087807
     },
     {
       "part": "scaling_share",
       "flex_scale": 16,
-      "total": 0.0178261325701366,
-      "accounting": 0.014586226426057725,
-      "strategic": 0.0032399061440788746
+      "total": 0.01782613257013621,
+      "accounting": 0.01458622642605728,
+      "strategic": 0.00323990614407893
     }
   ],
-  "runtime_s": 564.5
+  "runtime_s": 6015.3
 }
