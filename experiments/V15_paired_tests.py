@@ -95,8 +95,29 @@ if __name__ == "__main__":
     out = {"provenance": {"seeds": SEEDS, "regions": list(BAS),
                           "reference": REF,
                           "what": "paired Wilcoxon of each method against the "
-                                  "equilibrium, over seeds x regions"},
-           "tests": {}}
+                                  "equilibrium, pooled and per region"},
+           "tests": {}, "by_region": {}, "per_seed": {}}
+
+    # Pooling seeds across regions treats the region as a nuisance dimension,
+    # which sits badly with this paper's own argument that the three regions
+    # differ qualitatively -- CAISO's average factor inverts, PJM's marginal
+    # factor swings.  So report each region on its own as well.  The ratios are
+    # stored region-major, SEEDS at a time.
+    for k, b in enumerate(BAS):
+        sl = slice(k * SEEDS, (k + 1) * SEEDS)
+        rb = np.asarray(per[REF], float)[sl]
+        out["by_region"][b] = {}
+        for name, _ in METHODS:
+            if name == REF:
+                continue
+            v = np.asarray(per[name], float)[sl]
+            ok = np.isfinite(v) & np.isfinite(rb)
+            if ok.sum() < 5:
+                continue
+            out["by_region"][b][name] = paired(v[ok] - rb[ok])
+    # keep the raw ratios so a later question needs no rerun
+    out["per_seed"] = {n: [None if not np.isfinite(x) else float(x)
+                           for x in per[n]] for n, _ in METHODS}
     print(f"\npaired against '{REF}' ({len(ref)} pairs = "
           f"{SEEDS} seeds x {len(BAS)} regions)\n")
     print(f"{'method':28s} {'mean diff':>11s} {'p':>10s} {'d_z':>8s}  verdict")
@@ -113,6 +134,16 @@ if __name__ == "__main__":
             verdict = "NOT DISTINGUISHABLE from the equilibrium"
         print(f"{name:28s} {r['mean_diff']:+11.5f} {r['p_value']:10.2e} "
               f"{r['cohens_dz']:8.2f}  {verdict}")
+
+    print("\nper region (20 pairs each)")
+    for b in BAS:
+        row = out["by_region"].get(b, {})
+        ca = row.get("Carbon-agnostic")
+        sh = row.get("SHADE (ours)")
+        if ca and sh:
+            print(f"  {NICE[b]:6s} carbon-agnostic p={ca['p_value']:.3f} "
+                  f"(d_z {ca['cohens_dz']:+.2f})   "
+                  f"SHADE p={sh['p_value']:.2e} (d_z {sh['cohens_dz']:+.2f})")
 
     json.dump(out, open(OUT, "w"), indent=2)
     print(f"\nwrote {OUT}")
