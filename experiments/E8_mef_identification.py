@@ -349,6 +349,12 @@ def window_mask(dat, store, idx, window):
         return month <= 9
     if window == "autumn":                       # Oct-Dec
         return month >= 10
+    # Jan-Feb and Apr-Jun, for the 2025 H1 file V18 reads.  Both select nothing
+    # on the Jul-Dec file, where they are never requested.
+    if window == "winter":                       # Jan-Feb
+        return month <= 2
+    if window == "spring":                       # Apr-Jun
+        return month >= 4
     if window == "weekday":
         return (dow >= 1) & (dow <= 5)
     if window == "weekend":

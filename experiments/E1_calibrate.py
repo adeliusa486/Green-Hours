@@ -86,6 +86,12 @@ CLEAN_DECILE = 0.10          # the hours carbon-aware agents target
 # series is used throughout: mixing adjusted demand with raw generation, as an
 # earlier version did, compares two different vintages of the same hour.
 COL_DEMAND_ADJ = 13
+# The balancing authority's own DAY-AHEAD demand forecast, published before the
+# operating hour.  E1 never uses it; V22 instruments net load with the forecast
+# ERROR (realised minus forecast), which is the unanticipated component of
+# demand and therefore moves net load without running through the curtailment
+# decision that makes the OLS slope endogenous.
+COL_DEMAND_FCST = 5
 FUEL_COL = {
     "coal": 48, "gas": 49, "nuc": 50, "oil": 51, "hyd": 52, "pump": 53,
     "sol_nb": 54, "sol_b": 55, "wnd_nb": 56, "wnd_b": 57, "bat": 58,
@@ -157,15 +163,20 @@ def load(path=None):
                 hours[key] = len(hours)
             rows[row[0]].append(
                 (hours[key], _num(row[COL_DEMAND_ADJ]),
-                 [_num(row[FUEL_COL[k]]) for k in fuels]))
+                 [_num(row[FUEL_COL[k]]) for k in fuels],
+                 _num(row[COL_DEMAND_FCST])))
     H = len(hours)
     ba_data = {}
     for ba, rs in rows.items():
         idx = np.array([x[0] for x in rs], int)
         dem = np.full(H, np.nan); gen = np.zeros((H, len(fuels)))
+        fcst = np.full(H, np.nan)
         dem[idx] = [x[1] for x in rs]
         gen[idx] = np.nan_to_num(np.array([x[2] for x in rs], float))
-        ba_data[ba] = dict(dem=dem, gen=gen)
+        fcst[idx] = [x[3] for x in rs]
+        # `fcst` is carried but never read by E1; only V22 uses it.  Adding it
+        # changes no computation here, and E1.json reproduces byte for byte.
+        ba_data[ba] = dict(dem=dem, gen=gen, fcst=fcst)
     order = sorted(hours, key=lambda k: hours[k])
     hod = np.array([k[1] for k in order], int)
     # Calendar labels for the same hour axis.  E1 itself never needs them --
