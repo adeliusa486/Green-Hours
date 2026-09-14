@@ -93,19 +93,65 @@ def check(d):
                 want.add(f"({x:.4g},{y:.3f})")
     have = set(re.findall(r"\((\d[\d.]*,[\d.]+)\)", tex))
     have = {f"({h})" for h in have}
-    # the .tex also carries the three threshold markers, which are not curve
-    # points; ignore anything the data does not claim to contain
     missing = sorted(w for w in want if w not in have)
-    extra = sorted(h for h in have if h not in want)
     print(f"coordinates in results/E9.json : {len(want)}")
     print(f"coordinates in fig_threshold.tex: {len(have)}")
     if missing:
         print(f"MISSING from the figure ({len(missing)}): {missing[:6]} ...")
+
+    # ---- panel (a): deployment markers, drawn as median +- (p10, p90) -------
+    # Whitelist them by DERIVING them from E9 rather than tolerating a count.
+    marker_ok, allowed = True, set()
+    for mm in re.finditer(
+            r"coordinates \{\(([\d.]+),5\)\s*\+-\s*\(([\d.]+),([\d.]+)\)\}", tex):
+        x, lo, hi = (float(g) for g in mm.groups())
+        allowed |= {f"({mm.group(1)},5)", f"({mm.group(2)},{mm.group(3)})"}
+        band = (round(x - lo, 2), round(x + hi, 2))
+        hit = [ba for ba, _ in REGIONS
+               if (round(100 * d["headline"][ba]["static"]["p10"], 2),
+                   round(100 * d["headline"][ba]["static"]["p90"], 2)) == band]
+        if not hit:
+            marker_ok = False
+            print(f"  panel (a) marker at {x}% spans {band}, which is no "
+                  "region's static p10-p90 in E9.json")
+
+    # ---- panel (b): the crossing bars --------------------------------------
+    # Each bar endpoint must be an ACTUAL crossing in E9.json, and the pair must
+    # span one cluster.  Before this check the bars were verified by nothing,
+    # which is how the withdrawn 1.72%/8.22% medians survived review.
+    prop = d["propagation"]
+    cross = {}
+    for ba, _ in REGIONS:
+        cross[ba] = sorted(round(100 * v, 2)
+                           for k, c in prop.items() if k.startswith(ba + "|")
+                           for v in c["thresholds_by_seed"]["strat"] if v is not None)
+    bars = [(float(a), float(b)) for a, b in re.findall(
+        r"axis cs:([\d.]+),25\)\s*--\s*\(axis cs:([\d.]+),25\)", tex)]
+    bar_ok = True
+    if not bars:
+        bar_ok = False
+        print("  panel (b) has no crossing bars; the strategic crossings are "
+              "unverified against E9.json")
+    for lo, hi in bars:
+        owner = [ba for ba, _ in REGIONS
+                 if round(lo, 2) in cross[ba] and round(hi, 2) in cross[ba]]
+        if not owner:
+            bar_ok = False
+            print(f"  panel (b) bar {lo}-{hi}% is not a pair of crossings in "
+                  "E9.json")
+    n_cross = sum(len(v) for v in cross.values())
+    if bars and len(bars) * 2 > n_cross:
+        bar_ok = False
+        print(f"  panel (b) draws {len(bars)} bars but E9.json has only "
+              f"{n_cross} crossings")
+
+    extra = sorted(h for h in have if h not in want and h not in allowed)
     if extra:
-        print(f"in the figure but not in the data ({len(extra)}): "
-              f"{extra[:6]} ...")
-        print("  (three of these are the threshold markers and are expected)")
-    ok = not missing and len(extra) <= 3
+        print(f"in the figure, not in the data and not a derived marker "
+              f"({len(extra)}): {extra[:6]} ...")
+    ok = not missing and not extra and marker_ok and bar_ok
+    print(f"panel (a) markers: {'ok' if marker_ok else 'WRONG'}; "
+          f"panel (b) bars: {'ok' if bar_ok else 'WRONG'} ({len(bars)} drawn)")
     print("MATCH" if ok else "MISMATCH -- regenerate the figure")
     return 0 if ok else 1
 

@@ -38,6 +38,11 @@ PRE = r"""%% Standalone build of the paper's Figure 2, for export to PDF / SVG /
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepgfplotslibrary{groupplots}
+%% arrows.meta: panel (b)'s crossing bars use {Bar[width=...]} end caps.  The
+%% paper's preamble loads this for the architecture figure, so the figure body
+%% may assume it; without it here the standalone export fails with eight
+%% "I do not know the key 'width'" errors while main.pdf builds clean.
+\usetikzlibrary{arrows.meta}
 \pgfplotsset{compat=1.18}
 
 %% The ACM sigconf column is 241.14749pt; 0.99 of it is 238.736pt.
