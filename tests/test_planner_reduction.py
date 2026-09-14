@@ -152,5 +152,14 @@ def main():
     return 0 if ok else 1
 
 
+def test_all():
+    """Run the reduction check under pytest.
+
+    Without this the module defines no test_* function, so pytest collects
+    nothing here and the planner denominator goes unverified.
+    """
+    assert main() == 0
+
+
 if __name__ == "__main__":
     sys.exit(main())

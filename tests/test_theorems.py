@@ -346,6 +346,17 @@ def t8():
           f"{bad}/80 violations, tightest n*eps/gap = {worst_slack:.2f}x")
 
 
+def test_all():
+    """Run the whole audit under pytest.
+
+    Without this the module defines no test_* function, so pytest collects
+    nothing here and reports success without checking a single theorem.
+    """
+    for f in (t1_t2, t3, t4, t5, t6, t7, t8):
+        f()
+    assert not FAIL, "failures: " + ", ".join(FAIL)
+
+
 if __name__ == "__main__":
     print("test_theorems -- independent audit of the paper's claims\n")
     for f in (t1_t2, t3, t4, t5, t6, t7, t8):

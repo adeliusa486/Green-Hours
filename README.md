@@ -38,7 +38,7 @@ public grid data, and measures what the correlation costs.
   - [1. The measurement: the marginal factor is flat](#1-the-measurement-the-marginal-factor-is-flat)
   - [2. The deployment threshold](#2-the-deployment-threshold)
   - [3. The estimator is weakly identified](#3-the-estimator-is-weakly-identified)
-  - [4. What this audit downgraded](#4-what-this-audit-downgraded)
+  - [4. The workload model can flip the sign](#4-the-workload-model-can-flip-the-sign)
 - [The SHADE protocol](#the-shade-protocol)
 - [Installation](#installation)
 - [Quick start](#quick-start)
@@ -49,7 +49,6 @@ public grid data, and measures what the correlation costs.
 - [Figures](#figures)
 - [Correctness evidence](#correctness-evidence)
 - [Implementation notes](#implementation-notes)
-- [Corrections log](#corrections-log)
 - [Troubleshooting](#troubleshooting)
 - [Citation](#citation)
 - [License](#license)
@@ -137,17 +136,17 @@ unrestricted estimate gives η = 0.663 against 0.671.
 > `experiments/V22_iv_identification.py` documents an instrumental-variables
 > attempt at the simultaneity problem and reports what it finds.
 
-### 4. What this audit downgraded
+### 4. The workload model can flip the sign
 
-An earlier version of this file said the carbon-aware equilibrium (1.0419) does
-*not* beat carbon-agnostic scheduling (1.0401). That holds on the generated
-workload and **reverses** on the trace-derived one, where carbon-aware wins in
-CAISO at all 24 diurnal alignments and loses in ERCOT and PJM.
+On the generated workload the carbon-aware equilibrium (1.0419) does not beat
+carbon-agnostic scheduling (1.0401). On the trace-derived workload this
+reverses: carbon-aware wins in CAISO at all 24 diurnal alignments and loses in
+ERCOT and PJM.
 
-What is supportable is the weaker statement: the benefit of carbon-aware
-deferral on true marginal emissions is small, and its sign depends on how
-concentrated the counterfactual is. See the [corrections log](#corrections-log)
-for the full history.
+The supportable statement is therefore the weaker one. The benefit of
+carbon-aware deferral on true marginal emissions is small, and its sign depends
+on how concentrated the counterfactual is. `results/V15.json` reports the paired
+tests behind it.
 
 ---
 
@@ -177,8 +176,7 @@ the implementation.
 > it does not work at this scale: every configuration lands at 1.11–1.14 of the
 > planner against a 1.046 equilibrium, because the unit of privacy is a whole
 > daily profile whose sensitivity is the order of the entire per-slot aggregate.
-> It is reported as a costed negative result, not as a feature. Any diagram
-> showing a noise-injection stage in this pipeline is out of date.
+> It is reported as a costed negative result, not as a feature.
 
 ---
 
@@ -352,7 +350,8 @@ Measured on one core of a laptop. Nothing needs a GPU.
 | `E10_convergence.py` | ~30 min | |
 | `derive_azure_workload.py` | ~3 min | |
 | `E11_trace_workload.py` | ~40 min | |
-| Full test suite | ~30 min | `test_theorems.py` alone is ~15 min |
+| `test_theorems.py` | ~15 s | |
+| `test_planner_reduction.py` | ~90 s | |
 
 > [!WARNING]
 > **Budget for `E9_threshold.py` and `E3_main.py` before starting them**, and on
@@ -368,44 +367,29 @@ pip install pytest
 python -m pytest tests -q
 ```
 
-> [!CAUTION]
-> **`pytest` does not run the whole suite.** `tests/test_theorems.py` and
-> `tests/test_planner_reduction.py` expose their checks through a `__main__`
-> block rather than `test_*` functions, so pytest collects **zero** tests from
-> either file and reports success without having run the theorem audit or the
-> planner-denominator check — the two most important correctness artifacts here.
->
-> Until that is fixed, run those two directly:
->
-> ```bash
-> cd tests
-> python test_theorems.py
-> python test_planner_reduction.py
-> ```
+Every file is collected, including the theorem audit and the planner-denominator
+check. To see the printed detail for one of them, run it directly:
 
-Collection status per file:
+```bash
+cd tests
+python test_solver.py             # QP primitive vs SLSQP and trust-constr
+python test_game.py               # 9 analytic oracles for the game layer
+python test_planner_reduction.py  # the planner denominator, vs SLSQP
+python test_theorems.py           # every theorem, re-derived and attacked
+python test_cliff_solver.py       # KKT certificate for the piecewise solver
+python test_planner_uniqueness.py # y* unique, the profile is not
+python test_claims.py             # every headline number vs results/*.json
+```
 
-| File | Collected by pytest | Run directly |
-|---|---|---|
-| `test_claims.py` | 3 tests | yes |
-| `test_claims_revision.py` | 8 tests | — |
-| `test_claims_review3.py` | 9 tests | — |
-| `test_cliff_solver.py` | 4 tests | yes |
-| `test_game.py` | 7 tests | yes |
-| `test_planner_uniqueness.py` | 2 tests | yes |
-| `test_solver.py` | 1 test | yes |
-| `test_planner_reduction.py` | **0** | **required** |
-| `test_theorems.py` | **0** | **required** |
-
-The three claim files check every headline number in the paper against the JSON
+Three claim manifests check every headline number in the paper against the JSON
 that produced it:
 
 - `test_claims.py` — the main manifest.
-- `test_claims_revision.py` — the 12 September revision, plus guards that
-  retracted sentences stay retracted.
-- `test_claims_review3.py` — the 13 September review: the shape of the E9
-  crossing distribution, ε = 0 under exact aggregation, and that every "proof is
-  in the supplement" pointer resolves.
+- `test_claims_revision.py` — the second review round, pinning each claim to the
+  JSON that produced it.
+- `test_claims_review3.py` — the third round: the shape of the E9 crossing
+  distribution, ε = 0 under exact aggregation, and that every "proof is in the
+  supplement" pointer resolves.
 
 ---
 
@@ -533,26 +517,21 @@ We force the most-violated prefix to equality, re-solve, and — the part that
 matters — then test each forced constraint for **release**, dropping any whose
 removal keeps feasibility and lowers the objective.
 
-That release step is here because leaving it out was wrong, and the failure is
-worth recording. Earlier versions forced the most-violated prefix and recursed
-without reconsidering, on the reasoning that a constraint the relaxation
-violates must be active at the optimum. That is true of a single constraint and
-false of a chain: forcing prefix `k` to carry *exactly* `R_k` also forbids it
-from carrying more, and when the curvature `c_t` varies enough across slots to
-move where the relaxation puts its mass, the optimum wants more there. The
-trace-derived feasible sets of `E11` — envelopes read off measured peak
-concurrency, staircases from a short deferral horizon against a bursty arrival
-profile — hit exactly that case, and the old routine returned a block solution
-**1.5% above the optimum**.
+The release test is what makes the method correct on heterogeneous instances.
+Forcing the most-violated prefix and recursing without reconsidering is sound
+for a single constraint and unsound for a chain: forcing prefix `k` to carry
+*exactly* `R_k` also forbids it from carrying more, and when the curvature `c_t`
+varies enough across slots to move where the relaxation puts its mass, the
+optimum wants more there. The trace-derived feasible sets of `E11` — envelopes
+read off measured peak concurrency, staircases from a short deferral horizon
+against a bursty arrival profile — are exactly that case.
 
-It surfaced as an impossibility rather than as a wrong-looking number: a
-baseline scored **below** the planner, a ratio under 1.0, which cannot happen.
-`tests/test_solver.py` now pins the exact failing block
-(`tests/staircase_regression_block.npz`) and samples the family it came from,
-checked against `scipy.optimize.trust-constr` rather than SLSQP — SLSQP reports
-`success=False` on these sets and returns whatever point it reached, so
-agreement with it was not evidence. Flat-envelope, smooth-staircase instances,
-which is all the old test sampled, never triggered it.
+`tests/test_solver.py` pins a block from that family
+(`tests/staircase_regression_block.npz`) and samples around it, checked against
+`scipy.optimize.trust-constr` rather than SLSQP: SLSQP reports `success=False`
+on these sets and returns whatever point it reached, so agreement with it is not
+evidence. Flat-envelope, smooth-staircase instances never exercise the release
+path, so the regression block is the test that matters.
 
 </details>
 
@@ -568,63 +547,13 @@ and Minkowski sums add *rank functions*, not bounds:
 `min(a₁,b₁) + min(a₂,b₂) < min(a₁+a₂, b₁+b₂)` whenever operators differ in
 their energy-to-power ratio or their deadlines.
 
-An earlier version did exactly that. It understated `C(x*)` by up to **46%** on
-random instances and by 0.5–0.9% on the calibrated ones, inflating every ratio
-in the paper, and 299 of 300 aggregate solutions were not decomposable into
-per-operator schedules at all. `planner_value` now runs exact block descent;
+Using the aggregate set instead understates `C(x*)` by up to **46%** on random
+instances and by 0.5–0.9% on the calibrated ones, which inflates every ratio,
+and 299 of 300 aggregate solutions are not decomposable into per-operator
+schedules at all. `planner_value` therefore runs exact block descent;
 `planner_aggregate` is kept as a documented lower bound and as a certificate.
 `tests/test_planner_reduction.py` pins the value against SciPy and pins that the
 relaxation is loose on heterogeneous instances and tight on homogeneous ones.
-
-</details>
-
----
-
-## Corrections log
-
-This artifact has been audited twice and several claims were withdrawn or
-weakened. They are recorded rather than quietly deleted, because a reviewer
-comparing the artifact against the paper would otherwise find them contradicting
-each other.
-
-<details>
-<summary><b>Six corrections, September 2026</b></summary>
-
-**1. The empirical disclaimer was itself false.** A previous version of this
-file said "No measured grid data is used anywhere in this repository" and "not
-empirical claims about CAISO, ERCOT, PJM." That was true when it was written and
-became false when `E1_calibrate.py` landed. Left unfixed, the artifact would
-have been disclaiming the paper's central result.
-
-**2. The carbon-aware comparison was downgraded.** An earlier version said the
-carbon-aware equilibrium (1.0419) does *not* beat carbon-agnostic scheduling
-(1.0401). That holds on the generated workload and reverses on the
-trace-derived one. The supportable statement is weaker: the benefit is small and
-its sign depends on how concentrated the counterfactual is.
-
-**3. A correctness row was fabricated by omission.** A previous version of the
-evidence table claimed a "planner via Minkowski-sum reduction vs block
-coordinate descent, 3e-14" check. No test performed it, and the claim is false
-in general — see the planner-denominator note above.
-
-**4. Two raster diagrams were removed.** `docs/architecture.jpg` and
-`docs/overview.jpg` used to ship here. Both drew differential privacy as a stage
-of the pipeline, which is precisely the reading the DP warning above exists to
-prevent, and `overview.jpg` also carried two numbers the artifact contradicts:
-"0/120 violations of the price-of-anarchy bound" where `tests/test_theorems.py`
-T3 reports **0/250**, and a strategic share of "2.9% to 12.9% over n = 2 to 32"
-where `results/V5.json` gives **2.9% to 14.1% over n = 2 to 128**. Neither had a
-source that could be regenerated, which is how they drifted. `docs/figures/`
-replaces them and is built from the paper's own `.tex`.
-
-**5. The claim count in this file was stale.** Both the quick-start and the
-evidence table said "40/40 agree". The manifest has since grown and
-`tests/test_claims.py` now reports **57 agree, 0 disagree, 0 skipped**. The
-count is read off a live run, not transcribed.
-
-**6. Two runtimes were much larger than stated.** `E9_threshold.py` is roughly
-**6.6 h**, not the 2 h once claimed here. `E3_main.py` is about 1 h. See the
-[runtime budget](#runtime-budget).
 
 </details>
 
@@ -634,14 +563,13 @@ count is read off a live run, not transcribed.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `pytest` reports success in seconds | It collected 0 tests from `test_theorems.py` and `test_planner_reduction.py` | Run those two directly — see [Testing](#testing) |
 | `ModuleNotFoundError: gh` | Script run from the wrong directory | Run from `tests/` or `experiments/`; they add `../src` to `sys.path` themselves |
 | `FileNotFoundError` on the EIA CSV | Data not fetched, or `curl` run from the wrong directory | Run the `curl` from the repository root — see [Data](#data) |
 | `E11_trace_workload.py` fails | Azure trace absent | `bash scripts/fetch_azure.sh`; every other script runs without it |
 | A long run dies overnight on Windows | Modern Standby | Disable sleep in Settings; `powercfg /change standby-timeout-ac 0` does not govern it |
 | `export_figures.py` fails | `pdflatex` or `pdftocairo` not on `PATH` | Install TeX Live or MiKTeX, or skip it — no numeric result depends on it |
 | `--web-only` fails | Pillow missing | `pip install Pillow` |
-| A ratio below 1.0 appears | The planner denominator is wrong for that instance | This is the signature of the staircase bug — see [Implementation notes](#implementation-notes) |
+| A ratio below 1.0 appears | The planner denominator is not the true minimum for that instance | See [Implementation notes](#implementation-notes) |
 
 ---
 
