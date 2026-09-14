@@ -352,6 +352,7 @@ Measured on one core of a laptop. Nothing needs a GPU.
 | `E11_trace_workload.py` | ~40 min | |
 | `test_theorems.py` | ~15 s | |
 | `test_planner_reduction.py` | ~90 s | |
+| Full test suite, `pytest tests -q` | ~11 min | 128 tests |
 
 > [!WARNING]
 > **Budget for `E9_threshold.py` and `E3_main.py` before starting them**, and on

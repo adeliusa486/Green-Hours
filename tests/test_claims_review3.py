@@ -21,15 +21,31 @@ These tests pin the repair so the specific failure cannot silently return.
 """
 import json
 import os
+import re
 
 PAPER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
 
 
-def _read(fn):
-    p = os.path.join(PAPER, fn)
-    with open(p, encoding="utf-8", errors="replace") as f:
-        return " ".join(f.read().split())
+def _read(fn, _depth=0):
+    r"""Read a paper source, expanding \input so a wrapper reads as its content.
+
+    supplementary.tex is a wrapper: it \inputs supp_proofs, supp_identification,
+    supp_tables and supp_ai.  Searching the wrapper alone finds none of what
+    those files hold, which turned a real check into a false alarm: the two-slot
+    proposition is in supp_proofs.tex, and looking for it in supplementary.tex
+    reported it "gone".
+    """
+    path = os.path.join(PAPER, fn if fn.endswith(".tex") else fn + ".tex")
+    with open(path, encoding="utf-8", errors="replace") as f:
+        txt = f.read()
+    if _depth < 3:
+        for inc in re.findall(r"\\input\{([^}]+)\}", txt):
+            try:
+                txt += "\n" + _read(inc, _depth + 1)
+            except OSError:
+                pass
+    return " ".join(txt.split())
 
 
 def _json(fn):
