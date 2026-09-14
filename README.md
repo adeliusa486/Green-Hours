@@ -1,162 +1,312 @@
-# green-hour
+<h1 align="center">green-hour</h1>
 
-Simulator, solver, analytic oracles, and reproducible experiments for **"When
-Every Agent Chases the Same Green Hour: Equilibrium Inefficiency and Mechanism
-Design for Competing Carbon-Aware Datacenter Schedulers."**
+<p align="center">
+  <em>When Every Agent Chases the Same Green Hour:<br>
+  Equilibrium Inefficiency and Mechanism Design for Competing Carbon-Aware Datacenter Schedulers</em>
+</p>
+
+<p align="center">
+  <img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-blue">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
+  <img alt="Dependencies: numpy, scipy" src="https://img.shields.io/badge/deps-numpy%20%2B%20scipy-lightgrey">
+  <img alt="No GPU required" src="https://img.shields.io/badge/hardware-CPU%20only-informational">
+</p>
+
+<p align="center">
+  <img src="docs/figures/fig3_shade_architecture_web.png" width="100%"
+       alt="One round of SHADE: operators solve locally behind a privacy boundary, a clearinghouse receives only the securely aggregated sum and broadcasts a damped aggregate, and each operator forms its own correction by subtracting its own load.">
+</p>
+
+Simulator, solver, analytic oracles, and reproducible experiments for the paper
+above. Everything needed to regenerate every number it reports is in this
+repository.
 
 Cloud operators increasingly delegate workload placement to agents that shift
 flexible computation toward hours of low grid carbon intensity. Each agent
 optimises its own operator's *reported* emissions correctly, but they all read
 the same public signal, so their schedules correlate. This repository models
 that as an atomic splittable congestion game over time slots, calibrates it on
-public grid data, and contains everything needed to regenerate every number in
-the paper.
+public grid data, and measures what the correlation costs.
 
 ---
 
-## What this repository claims, precisely
+## Contents
 
-| | |
+- [At a glance](#at-a-glance)
+- [What this artifact claims](#what-this-artifact-claims)
+- [Key results](#key-results)
+  - [1. The measurement: the marginal factor is flat](#1-the-measurement-the-marginal-factor-is-flat)
+  - [2. The deployment threshold](#2-the-deployment-threshold)
+  - [3. The estimator is weakly identified](#3-the-estimator-is-weakly-identified)
+  - [4. What this audit downgraded](#4-what-this-audit-downgraded)
+- [The SHADE protocol](#the-shade-protocol)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Data](#data)
+- [Reproducing the paper](#reproducing-the-paper)
+- [Testing](#testing)
+- [Repository structure](#repository-structure)
+- [Figures](#figures)
+- [Correctness evidence](#correctness-evidence)
+- [Implementation notes](#implementation-notes)
+- [Corrections log](#corrections-log)
+- [Troubleshooting](#troubleshooting)
+- [Limitations](#limitations)
+- [Anonymity notice](#anonymity-notice)
+- [Citation](#citation)
+- [License](#license)
+
+---
+
+## At a glance
+
+| | Value | Source |
+|---|---|---|
+| Measured congestion strength | **κ = 0.007–0.052** | `results/E3.json` |
+| Gap closed by publishing a level-correct marginal factor | **99.9%** | `results/E3.json` |
+| Gap closed by SHADE | **100.0%** (Theorem 3, exact) | `results/E3.json` |
+| Flexible-load share where a static signal stops closing 95% of the gap | **1.15% CAISO**, 1.65% PJM, 3.64% ERCOT, against **0.38% today** | `results/E9.json` |
+| Ratio the theory uses, across 20 specifications | **η = 0.630–0.719** | `results/E8.json` |
+| Hardware | One CPU core. No GPU anywhere. | — |
+
+The short version: **the accounting error dominates the strategic one at today's
+scale.** Fixing the published signal is worth far more than any mechanism, and
+the mechanism becomes necessary only three to ten times above current flexible
+demand.
+
+---
+
+## What this artifact claims
+
+| Component | Status |
 |---|---|
 | **Grid side** | **Measured.** EIA-930, July–December 2024, public, no API key. Per-hour-of-day average and marginal emission factors and response curvature for CAISO, ERCOT and PJM. See [`data/README.md`](data/README.md) for the exact file, its SHA-256, and the identifying assumptions. |
-| **Workload side** | **Two models, and the difference between them is a finding.** The *generated* one (sizes, staircases, envelopes) is the reference. The *trace-derived* one takes operator sizes, market share, arrival shape and power envelopes from the Azure 2019 VM trace, which is CC BY 4.0 and therefore redistributable — see [`data/README.md`](data/README.md). Deadlines are in **no** public trace and stay swept; so does the diurnal phase, since the trace carries no timezone. Borg and Alibaba remain non-redistributable and are not used. |
+| **Workload side** | **Two models, and the difference between them is a finding.** The *generated* one (sizes, staircases, envelopes) is the reference. The *trace-derived* one takes operator sizes, market share, arrival shape and power envelopes from the Azure 2019 VM trace, which is CC BY 4.0 and therefore redistributable. Deadlines are in **no** public trace and stay swept; so does the diurnal phase, since the trace carries no timezone. Borg and Alibaba remain non-redistributable and are not used. |
 | **Everything in `results/`** | Regenerated by the scripts in `experiments/`, never hand-edited. Each file carries a `provenance` field. |
 | **What is not here** | The cooperative-MARL baseline (needs GPU training; reported absent, not estimated). Great Britain and Germany (the available feed gives no absolute demand, so no marginal regression is possible). |
 
-A previous version of this file said "No measured grid data is used anywhere in
-this repository" and "not empirical claims about CAISO, ERCOT, PJM." That was
-true when it was written and became false when `E1_calibrate.py` landed. It is
-corrected here rather than quietly deleted, because a reviewer comparing the
-artifact against the paper would have found the artifact disclaiming the paper's
-central result.
+---
 
-## The headline result, and the honest reading of it
+## Key results
+
+### 1. The measurement: the marginal factor is flat
 
 The marginal emission factor is close to flat across the day; the *average*
-factor is what moves. In CAISO the published average falls by 2.6× while the
-factor an increment of load actually pays varies by 1.29×.
+factor is what moves. In CAISO the published average falls by **2.6×** while
+the factor an increment of load actually pays varies by **1.29×**. The shaded
+band is the wedge no operator currently prices.
 
-Four consequences:
+<p align="center">
+  <img src="docs/figures/fig1_emission_factors_web.png" width="92%"
+       alt="Average and marginal emission factors by hour of day for CAISO and PJM. The marginal factor stays nearly flat while the published average dips sharply at midday.">
+</p>
 
-1. **Measured congestion strength is κ = 0.007–0.052**, so publishing the
-   *level-correct* marginal factor already removes **99.9%** of the equilibrium
-   gap (`results/E3.json`). SHADE attains the planner **exactly** (100.0%),
-   which is Theorem 3 confirmed — but it is not what closes the gap today.
-   This survives every robustness axis we tried, and is *stronger* on the
-   trace-derived workload, where the strategic share of the gap is 0.0–0.1%
-   (`results/E11.json`).
-2. **The deployment threshold.** A static marginal signal stops closing 95% of
-   the gap once flexible load reaches **1.15% of regional demand in CAISO
-   (10th–90th percentile 0.42–1.35), 1.65% in PJM and 3.64% in ERCOT**, against
-   0.38% today — three to ten times current flexible demand
-   (`results/E9.json`). The threshold barely moves with the number of operators
-   (0.88–1.22% over n ∈ [4,64]) and moves a great deal with the grid's
-   curvature and the fleet's power envelope, so it is a property of physics and
-   flexibility rather than of market structure. The **strategic** threshold —
-   where congestion reaches a quarter of the gap — is never reached below a 20%
-   flexible share in CAISO under the primary specification.
-3. **The MEF estimator is weakly identified**, and we say so
-   (`results/E8.json`). Across four accounting boundaries, five regressors,
-   five estimators and nine windows, the *level* spans a 43% range in CAISO
-   while η, the ratio the theory uses, moves only 0.630–0.719. Two placebos
-   collapse (permuted regressor 3–5% of the estimate, one-day lead 2–19%). The
-   net-load identifying restriction is rejected at 5% in 17 of 24 CAISO bins,
-   though the unrestricted estimate gives η = 0.663 against 0.671. **No
-   estimate here is causal** and none is presented as such.
-4. **One claim was downgraded by this audit.** An earlier version of this file
-   said the carbon-aware equilibrium (1.0419) does *not* beat carbon-agnostic
-   scheduling (1.0401). That holds on the generated workload and reverses on
-   the trace-derived one, where carbon-aware wins in CAISO at all 24 diurnal
-   alignments and loses in ERCOT and PJM. What is supportable is the weaker
-   statement: the benefit of carbon-aware deferral on true marginal emissions
-   is small and its sign depends on how concentrated the counterfactual is.
+<sub>Paper Figure 1, regenerated from <code>results/E1.json</code>.</sub>
 
-## Protocol
+### 2. The deployment threshold
+
+A static marginal signal stops closing 95% of the gap once flexible load
+reaches **1.15% of regional demand in CAISO** (10th–90th percentile
+0.42–1.35), **1.65% in PJM** and **3.64% in ERCOT**, against **0.38% today**.
+That is three to ten times current flexible demand.
+
+The threshold barely moves with the number of operators (0.88–1.22% over
+n ∈ [4, 64]) and moves a great deal with the grid's curvature and the fleet's
+power envelope, so it is a property of physics and flexibility rather than of
+market structure. The **strategic** threshold — where congestion reaches a
+quarter of the gap — is never reached below a 20% flexible share in CAISO under
+the primary specification.
+
+<p align="center">
+  <img src="docs/figures/fig2_thresholds_web.png" width="92%"
+       alt="Panel (a): percentage of the gap left unclosed by a level-correct but load-independent factor, against flexible share, log-log, with 5 percent crossings marked. Panel (b): the strategic share of the gap against the same axis, with bars spanning estimator-specification crossings.">
+</p>
+
+<sub>Paper Figure 2, regenerated from <code>results/E9.json</code> and verified
+coordinate by coordinate by <code>scripts/make_threshold_figure.py --check</code>.</sub>
+
+### 3. The estimator is weakly identified
+
+Across four accounting boundaries, five regressors, five estimators and nine
+windows, the *level* spans a 43% range in CAISO while η, the ratio the theory
+uses, moves only **0.630–0.719**. Two placebos collapse as they should
+(permuted regressor 3–5% of the estimate, one-day lead 2–19%). The net-load
+identifying restriction is rejected at 5% in 17 of 24 CAISO bins, though the
+unrestricted estimate gives η = 0.663 against 0.671.
+
+> [!IMPORTANT]
+> **No estimate in this repository is causal**, and none is presented as such.
+> `experiments/V22_iv_identification.py` documents an instrumental-variables
+> attempt at the simultaneity problem and reports what it finds.
+
+### 4. What this audit downgraded
+
+An earlier version of this file said the carbon-aware equilibrium (1.0419) does
+*not* beat carbon-agnostic scheduling (1.0401). That holds on the generated
+workload and **reverses** on the trace-derived one, where carbon-aware wins in
+CAISO at all 24 diurnal alignments and loses in ERCOT and PJM.
+
+What is supportable is the weaker statement: the benefit of carbon-aware
+deferral on true marginal emissions is small, and its sign depends on how
+concentrated the counterfactual is. See the [corrections log](#corrections-log)
+for the full history.
+
+---
+
+## The SHADE protocol
 
 Operators solve locally and emit only masked per-slot intentions. The
 clearinghouse receives the **securely aggregated** sum, damps it, and broadcasts
-the aggregate `ŷ` together with the published factors; **each operator then
+the aggregate `ŷ` together with the published factors. **Each operator then
 forms its own adder** by subtracting its own contribution locally, so the adders
 are *not* identical across operators — that is what makes the correction
-load-responsive without anyone holding a schedule. Algorithm 1 in the paper's
-supplement gives the pseudocode; `src/gh/mech.py` is the implementation.
+load-responsive without anyone holding a schedule.
 
-**This is schedule confidentiality via secure aggregation, not differential
-privacy.** The DP variant is implemented (`mech.noise_scale`) and measured, and
-it does not work at this scale: every configuration lands at 1.11–1.14 of the
-planner against a 1.046 equilibrium, because the unit of privacy is a whole
-daily profile whose sensitivity is the order of the entire per-slot aggregate.
-It is reported as a costed negative result, not as a feature.
+<p align="center">
+  <img src="docs/figures/shade_overview.jpg" width="100%"
+       alt="SHADE coordination architecture: the public grid signal feeds a clearinghouse that broadcasts a damped aggregate; each operator computes its own correction from the aggregate minus its own lagged load, solves a local quadratic program, and returns only a masked additive share.">
+</p>
 
-`docs/architecture.jpg` is a superseded diagram: it draws differential privacy
-as a stage of the pipeline, which is precisely the reading the paper's
-Section 5.2 exists to prevent. The paper's own figure, drawn in TikZ, does not.
+<sub>Illustrative overview. It carries no numeric result; every quantity it names
+is defined in <code>src/gh/mech.py</code>. The authoritative diagram is
+<a href="docs/figures/fig3_shade_architecture.pdf">Figure S4</a>, exported from
+the paper's own <code>.tex</code>.</sub>
 
-## Anonymity (read before submitting this as supplementary material)
+Algorithm 1 in the paper's supplement gives the pseudocode; `src/gh/mech.py` is
+the implementation.
 
-AAMAS reviewing is double-blind and a submission may be desk-rejected if the
-supplementary material identifies the authors. Three things in a working copy of
-this repository do:
+> [!WARNING]
+> **This is schedule confidentiality via secure aggregation, not differential
+> privacy.** The DP variant is implemented (`mech.noise_scale`) and measured, and
+> it does not work at this scale: every configuration lands at 1.11–1.14 of the
+> planner against a 1.046 equilibrium, because the unit of privacy is a whole
+> daily profile whose sensitivity is the order of the entire per-slot aggregate.
+> It is reported as a costed negative result, not as a feature. Any diagram
+> showing a noise-injection stage in this pipeline is out of date.
 
-1. **`.git/`** — the commit history carries the author's name, email and the
-   origin URL. Ship a zip of the working tree with `.git/` removed, e.g.
-   `git archive --format=zip HEAD -o artifact.zip`, which never includes it.
-2. **Absolute paths in generated output.** Scripts now print paths relative to
-   the repository, but any `results/*.txt` regenerated on a machine before that
-   change may still embed a home directory. Grep before zipping.
-3. **`LICENSE`** — the copyright line reads "The Authors"; restore the real
-   holder for the camera-ready version, not for the submission.
+---
 
-The paper refers to "the anonymised artifact accompanying this submission" and
-carries no repository URL, which is deliberate.
+## Installation
 
-## Install
+### Requirements
 
-Python 3.9+ (developed on 3.11.9), `numpy` and `scipy`. Nothing else.
+| | |
+|---|---|
+| Python | 3.9+ (developed and measured on 3.11.9) |
+| Runtime dependencies | `numpy`, `scipy` — nothing else |
+| Test runner | `pytest` (not a runtime dependency) |
+| Figure rebuilds only | `pdflatex` and `pdftocairo` on `PATH`; `Pillow` for `--web-only` |
+
+The package is used **in-tree**. There is no `setup.py` or `pyproject.toml`, and
+nothing needs installing — the test and experiment scripts add `src/` to
+`sys.path` themselves.
+
+### Linux / macOS
 
 ```bash
+git clone https://github.com/adeliusa486/Green-Hours.git
+cd Green-Hours
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+pip install pytest
 ```
 
-Pinned versions used for the numbers in the paper: numpy 1.26.4, scipy 1.17.1.
+### Windows (PowerShell)
 
-## Reproduce
+```powershell
+git clone https://github.com/adeliusa486/Green-Hours.git
+cd Green-Hours
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install pytest
+```
+
+`requirements.txt` floats (`numpy>=1.24`, `scipy>=1.10`). The numbers in the
+paper were produced with **numpy 1.26.4 and scipy 1.17.1**; pin those to
+reproduce the published digits exactly.
+
+---
+
+## Quick start
+
+Verify the artifact against its own committed results. No data download, no
+solver time, about one second:
 
 ```bash
-# 0. fetch the data (public; neither file is committed -- see data/README.md)
+cd tests
+python test_claims.py
+```
+
+This checks every headline number in the paper against the JSON file that
+produced it. It should report **`57 agree, 0 disagree, 0 skipped`**. If it does,
+the repository you have is internally consistent and you can trust the tables in
+`results/` before spending any compute.
+
+---
+
+## Data
+
+Neither source dataset is committed. Both are public.
+[`data/README.md`](data/README.md) carries the URLs, retrieval dates, SHA-256
+sums and identifying assumptions.
+
+```bash
+# EIA-930, 48 MB. Needed by E1, E3, E8, E9. Run from the repository root.
 curl -o data/EIA930_BALANCE_2024_Jul_Dec.csv \
   https://www.eia.gov/electricity/gridmonitor/sixMonthFiles/EIA930_BALANCE_2024_Jul_Dec.csv
-bash scripts/fetch_azure.sh       # Azure 2019 VM trace, CC BY 4.0, 437 MB
-                                  # (only E11 needs it; everything else runs without)
 
-# 1. correctness, before believing any experiment
-python -m pytest tests -q                  # all of the below, ~10 min
-# or one at a time, for the printed detail:
+# Azure 2019 VM trace, CC BY 4.0, 437 MB. Needed by E11 only.
+bash scripts/fetch_azure.sh
+```
+
+On Windows, run `fetch_azure.sh` from Git Bash or WSL. Everything except E11
+runs without it.
+
+---
+
+## Reproducing the paper
+
+Run each stage from the directory shown. Every script writes
+`results/<ID>.json` with a provenance header.
+
+### Stage 1 — Correctness, before believing any experiment
+
+```bash
 cd tests
-python test_solver.py             # QP primitive vs SLSQP and trust-constr,
-                                  # including the staircase regression          ~4 min
-python test_game.py               # 9 analytic oracles for the game layer        ~1 min
-python test_planner_reduction.py  # the planner denominator, vs SLSQP            ~6 min
-python test_theorems.py           # every theorem, re-derived and attacked       ~15 min
-python test_cliff_solver.py       # KKT certificate for the piecewise solver     ~3 min
-python test_planner_uniqueness.py # y* unique, the profile is not                ~1 min
-python test_claims.py             # every headline number vs results/*.json      ~1 s
+python test_solver.py             # QP primitive vs SLSQP and trust-constr
+python test_game.py               # 9 analytic oracles for the game layer
+python test_planner_reduction.py  # the planner denominator, vs SLSQP
+python test_theorems.py           # every theorem, re-derived and attacked
+python test_cliff_solver.py       # KKT certificate for the piecewise solver
+python test_planner_uniqueness.py # y* unique, the profile is not
+python test_claims.py             # every headline number vs results/*.json
+```
 
-# 2. the calibration, its identification audit, and the main table
-cd ../experiments
-python E1_calibrate.py            # AEF/MEF/beta/eta/kappa + 4 sensitivities     ~10 s
-python E8_mef_identification.py   # 20 specifications, placebos, block bootstrap ~3 min
-python E3_main.py                 # Table 1, 20 seeds x 3 regions                ~60 min
-python E4_E7_ablation.py          # operational metrics and the ablation         ~20 min
+### Stage 2 — Calibration, identification audit, main table
 
-# 3. the threshold, the mechanism's region, and the trace workload
-python E9_threshold.py            # dense share sweep + sensitivity + E8 specs   ~2 h
-python E5_when_mechanism_matters.py  # the coarse version E9 supersedes          ~60 min
-python E10_convergence.py         # the convergence region, adversarially        ~30 min
-python derive_azure_workload.py   # reduce the 437 MB trace to 168 kB            ~3 min
-python E11_trace_workload.py      # Table 1 on a trace-derived workload          ~40 min
+```bash
+cd experiments
+python E1_calibrate.py            # AEF/MEF/beta/eta/kappa + 4 sensitivities
+python E8_mef_identification.py   # 20 specifications, placebos, bootstrap
+python E3_main.py                 # Table 1, 20 seeds x 3 regions
+python E4_E7_ablation.py          # operational metrics and the ablation
+```
 
-# 4. the falsification suite
+### Stage 3 — Threshold, mechanism region, trace workload
+
+```bash
+cd experiments
+python E9_threshold.py               # dense share sweep + sensitivity + E8 specs
+python E5_when_mechanism_matters.py  # the coarse version E9 supersedes
+python E10_convergence.py            # the convergence region, adversarially
+python derive_azure_workload.py      # reduce the 437 MB trace to 168 kB
+python E11_trace_workload.py         # Table 1 on a trace-derived workload
+```
+
+### Stage 4 — The falsification suite
+
+```bash
+cd experiments
 python V1_model_cap.py            # the emissions model's ceiling on eta
 python V2_precision.py            # when a noisier signal helps, and when not
 python V3_two_slot.py             # the exact two-slot proposition
@@ -170,36 +320,207 @@ python V10_cliff.py               # cliff vs smooth decomposition
 python V11_shade_under_cliff.py   # SHADE under a response it was not derived for
 python V12_robustness.py          # 39 configurations, 8 axes
 python V13_general_poa.py         # falsify the generalised bound
+python V14_beta_clip_sensitivity.py  # what the positive curvature floor costs
+python V15_paired_tests.py        # paired Wilcoxon and Cohen's d over 60 pairs
+python V16_equivalence.py         # TOST equivalence, power, per-region split
+python V17_beta_identification.py # how much worse beta and kappa are than eta
+python V18_winter.py              # out of sample on EIA-930 2025 H1
+python V19_local_smoothness.py    # the two inequalities behind Theorem 4.3
+python V20_tightness.py           # how much of the PoA bound is reachable
+python V21_concentration.py       # the misreporting bound at real market share
+python V22_iv_identification.py   # instrumental-variables attempt at causality
 ```
 
-Every script writes `results/<ID>.json` with a provenance header. Runtimes are
-on one core of a laptop; nothing needs a GPU.
+### Stage 5 — Figures
 
-## What is here
-
+```bash
+cd scripts
+python make_threshold_figure.py --check   # Figure 2 vs results/E9.json
+python sync_standalone.py                 # standalone copy of Figure 2
+python export_figures.py                  # docs/figures/*.{pdf,svg,png}
+python export_figures.py --web-only       # re-crop the README rasters
 ```
-src/gh/core.py        model, feasible sets, the separable-QP primitive,
+
+### Runtime budget
+
+Measured on one core of a laptop. Nothing needs a GPU.
+
+| Script | Runtime | Notes |
+|---|---|---|
+| `E1_calibrate.py` | ~10 s | |
+| `E8_mef_identification.py` | ~3 min | |
+| `E3_main.py` | **~1 h** | |
+| `E4_E7_ablation.py` | ~20 min | |
+| `E5_when_mechanism_matters.py` | ~60 min | superseded by E9 |
+| `E9_threshold.py` | **~6.6 h** | phase A 3.2 h, phase B 1.5 h, phase C 1.9 h |
+| `E10_convergence.py` | ~30 min | |
+| `derive_azure_workload.py` | ~3 min | |
+| `E11_trace_workload.py` | ~40 min | |
+| Full test suite | ~30 min | `test_theorems.py` alone is ~15 min |
+
+> [!WARNING]
+> **Budget for `E9_threshold.py` and `E3_main.py` before starting them**, and on
+> a laptop disable sleep first. On Windows, Modern Standby suspends or kills long
+> runs and `powercfg /change standby-timeout-ac 0` does **not** govern it.
+
+---
+
+## Testing
+
+```bash
+pip install pytest
+python -m pytest tests -q
+```
+
+> [!CAUTION]
+> **`pytest` does not run the whole suite.** `tests/test_theorems.py` and
+> `tests/test_planner_reduction.py` expose their checks through a `__main__`
+> block rather than `test_*` functions, so pytest collects **zero** tests from
+> either file and reports success without having run the theorem audit or the
+> planner-denominator check — the two most important correctness artifacts here.
+>
+> Until that is fixed, run those two directly:
+>
+> ```bash
+> cd tests
+> python test_theorems.py
+> python test_planner_reduction.py
+> ```
+
+Collection status per file:
+
+| File | Collected by pytest | Run directly |
+|---|---|---|
+| `test_claims.py` | 3 tests | yes |
+| `test_claims_revision.py` | 8 tests | — |
+| `test_claims_review3.py` | 9 tests | — |
+| `test_cliff_solver.py` | 4 tests | yes |
+| `test_game.py` | 7 tests | yes |
+| `test_planner_uniqueness.py` | 2 tests | yes |
+| `test_solver.py` | 1 test | yes |
+| `test_planner_reduction.py` | **0** | **required** |
+| `test_theorems.py` | **0** | **required** |
+
+The three claim files check every headline number in the paper against the JSON
+that produced it:
+
+- `test_claims.py` — the main manifest.
+- `test_claims_revision.py` — the 12 September revision, plus guards that
+  retracted sentences stay retracted.
+- `test_claims_review3.py` — the 13 September review: the shape of the E9
+  crossing distribution, ε = 0 under exact aggregation, and that every "proof is
+  in the supplement" pointer resolves.
+
+---
+
+## Repository structure
+
+```text
+src/gh/
+  core.py             model, feasible sets, the separable-QP primitive,
                       Nash / planner / wedge-fixed equilibria
-src/gh/instances.py   synthetic instance generators
-src/gh/mech.py        SHADE, its variants, and the (costed) privacy layer
-src/gh/cliff.py       piecewise ("cliff") dispatch response and its planner
-src/gh/baselines.py   the baselines
+  instances.py        synthetic instance generators
+  mech.py             SHADE, its variants, and the (costed) privacy layer
+  cliff.py            piecewise ("cliff") dispatch response and its planner
+  baselines.py        the baselines
+
+experiments/          one runner per experiment (E*) and per falsification
+                      probe (V*)
 tests/                solver validation, analytic oracles, theorem audit,
-                      and test_claims.py, which checks every headline number
-                      in the paper against the JSON that produced it
-experiments/          one runner per experiment
+                      and three claim manifests
 results/              generated; never hand-edited
 data/                 see data/README.md; neither source dataset is committed
-scripts/              fetch_azure.sh
-docs/TRACEABILITY.md  every paper claim -> script -> input -> output -> test
+
+scripts/
+  fetch_azure.sh            fetch the Azure 2019 VM trace
+  make_threshold_figure.py  emit and --check Figure 2 against results/E9.json
+  sync_standalone.py        standalone copy of Figure 2
+  export_figures.py         docs/figures from the paper's own .tex sources
+
+docs/
+  TRACEABILITY.md     every paper claim -> script -> input -> output -> test
+  figures/            the paper's figures as vector PDF, SVG and 600 dpi PNG,
+                      rebuilt from ../fig_*.tex by scripts/export_figures.py
 ```
 
-### The solver
+---
+
+## Figures
+
+`docs/figures/` holds the three figures the paper prints, exported from the same
+`.tex` sources the manuscript includes, so a figure here cannot say something
+the paper does not.
+
+| File | Paper | What it shows | Data |
+|---|---|---|---|
+| `fig1_emission_factors` | Figure 1 | Measured average and marginal emission factors by hour of day for CAISO and PJM, with bootstrap bands. The marginal factor is close to flat while the published average moves by 2.6×. | `results/E1.json` |
+| `fig2_thresholds` | Figure 2 | (a) what a level-correct but load-independent factor leaves unclosed against flexible share, log-log, with the 5% crossings marked; (b) the strategic share of the gap, with bars spanning the crossings of the only 4 of 18 estimator specifications that reach the 25% criterion. | `results/E9.json` |
+| `fig3_shade_architecture` | Figure S4 | One round of SHADE: what stays inside the operator, the local QP, secure aggregation, and the damped broadcast. A diagram, not data. | — |
+
+Each is emitted as `.pdf` (vector), `.svg`, `.png` (600 dpi) and `_web.png` — a
+pure crop of the PNG with the standalone class's blank margin removed, for
+rendering in this file. `shade_overview.jpg` is an illustrative architecture
+overview used only in this README; it states no numeric result.
+
+`make_threshold_figure.py --check` verifies Figure 2 against `results/E9.json`
+coordinate by coordinate, including that each bar in panel (b) spans a real pair
+of crossings. **It fails if a value that is not in the data appears in the
+figure.**
+
+---
+
+## Correctness evidence
+
+### Solver
+
+| Check | Result | Where |
+|---|---|---|
+| Fast QP vs SLSQP, 400 random instances | worst relative excess 8.2e-13 | `test_solver.py` |
+| **Staircase solver vs trust-constr**, spiky R + wide curvature, 120 instances + the pinned failing block | worst relative excess 5.8e-11 | `test_solver.py` |
+| **The staircase repair changes nothing on the synthetic instances** — 28,137 solves across E3's three regions, release step never fires | 0 changes | `experiments/_probe_release.py` |
+| Exact planner vs SLSQP, 120 instances | worst relative gap 8.3e-7 | `test_planner_reduction.py` |
+| Aggregate relaxation is loose / tight as predicted | 116/120 loose, 1.1e-12 tight | `test_planner_reduction.py` |
+| Piecewise solver optimality, 300 instances | KKT violation 0.000e+00 | `test_cliff_solver.py` |
+
+### Game and theorems
+
+| Check | Result | Where |
+|---|---|---|
+| Potential function is exact | 3.3e-13 | `test_theorems.py` T1 |
+| Lemma 1 holds as an identity in `x`, not only at an optimum | 1.5e-8 | `test_theorems.py` T2 |
+| PoA bound violations, 250 random instances | 0 (worst 55.1% of the bound) | `test_theorems.py` T3 |
+| Generalised bound under a piecewise response, 150 instances | 0 violations | `test_theorems.py` T4 |
+| Interior signal noise: exponent in σ | 2.000 | `test_theorems.py` T5 |
+| Two-slot thresholds and the n ≥ 4 window | 0 mismatches | `test_theorems.py` T6 |
+| SHADE fixed point attains the planner | excess 1.8e-13 | `test_theorems.py` T7 |
+| ε-Nash implies `C − C* ≤ n·ε` | 0/80 violations | `test_theorems.py` T8 |
+| No profitable unilateral deviation at the computed Nash | max relative gain 1.9e-14 | `test_game.py` |
+| Uniqueness: 20 random starts | spread 9.6e-11 | `test_game.py` |
+
+### Empirical pipeline
+
+| Check | Result | Where |
+|---|---|---|
+| Every headline number vs the JSON that produced it | 57 agree, 0 disagree | `test_claims.py` |
+| SHADE adversarial sweep: n ∈ [1,128], β over 13 orders, capacity at the feasibility edge | 0 divergences of 23 | `E10_convergence.py` |
+| ε-Nash bound of Theorem 4 checked as an inequality | 0/15 violations | `E10_convergence.py` |
+| 12 random initialisations agree on the aggregate y* | 1.3e-13 relative | `E10_convergence.py` |
+| Azure trace parse vs Microsoft's published lifetime CDF | 64.0% vs 63.6% of VMs ≤ 1 h | `derive_azure_workload.py` |
+
+Full claim-to-script-to-test traceability is in
+[`docs/TRACEABILITY.md`](docs/TRACEABILITY.md).
+
+---
+
+## Implementation notes
+
+<details>
+<summary><b>The solver</b> — one primitive, and the release step that had to be added</summary>
 
 Every equilibrium concept reduces to one primitive: minimise a separable convex
 quadratic over
 
-```
+```text
 X_i = { x >= 0 : sum_t x_t = E_i,  x_t <= u_t,  sum_{tau<=t} x_tau >= R_t }
 ```
 
@@ -230,14 +551,17 @@ profile — hit exactly that case, and the old routine returned a block solution
 
 It surfaced as an impossibility rather than as a wrong-looking number: a
 baseline scored **below** the planner, a ratio under 1.0, which cannot happen.
-`tests/test_solver.py` now pins the exact failing block (`tests/
-staircase_regression_block.npz`) and samples the family it came from, checked
-against `scipy.optimize.trust-constr` rather than SLSQP — SLSQP reports
+`tests/test_solver.py` now pins the exact failing block
+(`tests/staircase_regression_block.npz`) and samples the family it came from,
+checked against `scipy.optimize.trust-constr` rather than SLSQP — SLSQP reports
 `success=False` on these sets and returns whatever point it reached, so
 agreement with it was not evidence. Flat-envelope, smooth-staircase instances,
 which is all the old test sampled, never triggered it.
 
-### The planner denominator — read this before trusting a ratio
+</details>
+
+<details>
+<summary><b>The planner denominator</b> — read this before trusting a ratio</summary>
 
 Every number the paper reports is `C(x) / C(x*)`, so `C(x*)` has to be the
 minimum over the **product** set `∏_i X_i`. It is tempting to replace that
@@ -256,35 +580,121 @@ per-operator schedules at all. `planner_value` now runs exact block descent;
 `tests/test_planner_reduction.py` pins the value against SciPy and pins that the
 relaxation is loose on heterogeneous instances and tight on homogeneous ones.
 
-### Correctness evidence
+</details>
 
-| Check | Result | Where |
+---
+
+## Corrections log
+
+This artifact has been audited twice and several claims were withdrawn or
+weakened. They are recorded rather than quietly deleted, because a reviewer
+comparing the artifact against the paper would otherwise find them contradicting
+each other.
+
+<details>
+<summary><b>Six corrections, September 2026</b></summary>
+
+**1. The empirical disclaimer was itself false.** A previous version of this
+file said "No measured grid data is used anywhere in this repository" and "not
+empirical claims about CAISO, ERCOT, PJM." That was true when it was written and
+became false when `E1_calibrate.py` landed. Left unfixed, the artifact would
+have been disclaiming the paper's central result.
+
+**2. The carbon-aware comparison was downgraded.** An earlier version said the
+carbon-aware equilibrium (1.0419) does *not* beat carbon-agnostic scheduling
+(1.0401). That holds on the generated workload and reverses on the
+trace-derived one. The supportable statement is weaker: the benefit is small and
+its sign depends on how concentrated the counterfactual is.
+
+**3. A correctness row was fabricated by omission.** A previous version of the
+evidence table claimed a "planner via Minkowski-sum reduction vs block
+coordinate descent, 3e-14" check. No test performed it, and the claim is false
+in general — see the planner-denominator note above.
+
+**4. Two raster diagrams were removed.** `docs/architecture.jpg` and
+`docs/overview.jpg` used to ship here. Both drew differential privacy as a stage
+of the pipeline, which is precisely the reading the DP warning above exists to
+prevent, and `overview.jpg` also carried two numbers the artifact contradicts:
+"0/120 violations of the price-of-anarchy bound" where `tests/test_theorems.py`
+T3 reports **0/250**, and a strategic share of "2.9% to 12.9% over n = 2 to 32"
+where `results/V5.json` gives **2.9% to 14.1% over n = 2 to 128**. Neither had a
+source that could be regenerated, which is how they drifted. `docs/figures/`
+replaces them and is built from the paper's own `.tex`.
+
+**5. The claim count in this file was stale.** Both the quick-start and the
+evidence table said "40/40 agree". The manifest has since grown and
+`tests/test_claims.py` now reports **57 agree, 0 disagree, 0 skipped**. The
+count is read off a live run, not transcribed.
+
+**6. Two runtimes were much larger than stated.** `E9_threshold.py` is roughly
+**6.6 h**, not the 2 h once claimed here. `E3_main.py` is about 1 h. See the
+[runtime budget](#runtime-budget).
+
+</details>
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
 |---|---|---|
-| Fast QP vs SLSQP, 400 random instances | worst relative excess 8.2e-13 | `test_solver.py` |
-| **Staircase solver vs trust-constr**, spiky R + wide curvature, 120 instances + the pinned failing block | worst relative excess 5.8e-11 | `test_solver.py` |
-| **The staircase repair changes nothing on the synthetic instances** — 28,137 solves across E3's three regions, release step never fires | 0 changes | `experiments/_probe_release.py` |
-| Every headline number vs the JSON that produced it | 40/40 agree | `test_claims.py` |
-| SHADE adversarial sweep: n ∈ [1,128], β over 13 orders, capacity at the feasibility edge | 0 divergences of 23 | `E10_convergence.py` |
-| ε-Nash bound of Theorem 4 checked as an inequality | 0/15 violations | `E10_convergence.py` |
-| 12 random initialisations agree on the aggregate y\* | 1.3e-13 relative | `E10_convergence.py` |
-| Azure trace parse vs Microsoft's published lifetime CDF | 64.0% vs 63.6% of VMs ≤ 1 h | `derive_azure_workload.py` |
-| Potential function is exact | 3.3e-13 | `test_theorems.py` T1 |
-| Lemma 1 holds as an identity in `x`, not only at an optimum | 1.5e-8 | `test_theorems.py` T2 |
-| No profitable unilateral deviation at the computed Nash | max relative gain 1.9e-14 | `test_game.py` |
-| Uniqueness: 20 random starts | spread 9.6e-11 | `test_game.py` |
-| Exact planner vs SLSQP, 120 instances | worst relative gap 8.3e-7 | `test_planner_reduction.py` |
-| Aggregate relaxation is loose / tight as predicted | 116/120 loose, 1.1e-12 tight | `test_planner_reduction.py` |
-| PoA bound violations, 250 random instances | 0 (worst 55.1% of the bound) | `test_theorems.py` T3 |
-| Generalised bound under a piecewise response, 150 instances | 0 violations | `test_theorems.py` T4 |
-| Interior signal noise: exponent in sigma | 2.000 | `test_theorems.py` T5 |
-| Two-slot thresholds and the n>=4 window | 0 mismatches | `test_theorems.py` T6 |
-| SHADE fixed point attains the planner | excess 1.8e-13 | `test_theorems.py` T7 |
-| eps-Nash implies `C - C* <= n*eps` | 0/80 violations | `test_theorems.py` T8 |
-| Piecewise solver optimality, 300 instances | KKT violation 0.000e+00 | `test_cliff_solver.py` |
+| `pytest` reports success in seconds | It collected 0 tests from `test_theorems.py` and `test_planner_reduction.py` | Run those two directly — see [Testing](#testing) |
+| `ModuleNotFoundError: gh` | Script run from the wrong directory | Run from `tests/` or `experiments/`; they add `../src` to `sys.path` themselves |
+| `FileNotFoundError` on the EIA CSV | Data not fetched, or `curl` run from the wrong directory | Run the `curl` from the repository root — see [Data](#data) |
+| `E11_trace_workload.py` fails | Azure trace absent | `bash scripts/fetch_azure.sh`; every other script runs without it |
+| A long run dies overnight on Windows | Modern Standby | Disable sleep in Settings; `powercfg /change standby-timeout-ac 0` does not govern it |
+| `export_figures.py` fails | `pdflatex` or `pdftocairo` not on `PATH` | Install TeX Live or MiKTeX, or skip it — no numeric result depends on it |
+| `--web-only` fails | Pillow missing | `pip install Pillow` |
+| A ratio below 1.0 appears | The planner denominator is wrong for that instance | This is the signature of the staircase bug — see [Implementation notes](#implementation-notes) |
 
-A previous version of this table claimed a "planner via Minkowski-sum reduction
-vs block coordinate descent, 3e-14" check. No test performed it, and the claim
-is false in general — see above.
+---
+
+## Limitations
+
+- **No estimate here is causal.** The MEF estimator is weakly identified and the
+  net-load identifying restriction is rejected in 17 of 24 CAISO bins.
+- **Deadlines are swept, not measured.** No public trace carries them, and the
+  Azure trace carries no timezone, so the diurnal phase is swept too.
+- **No cooperative-MARL baseline.** It needs GPU training and is reported
+  absent, not estimated.
+- **Three regions only.** Great Britain and Germany are excluded because the
+  available feed gives no absolute demand, so no marginal regression is
+  possible.
+- **The DP variant does not work at this scale**, and is reported as a costed
+  negative result.
+- **`results/V16`–`V22` are not covered** by `tests/test_claims.py`.
+
+---
+
+## Anonymity notice
+
+> [!CAUTION]
+> **Read this before submitting the repository as supplementary material.**
+
+AAMAS reviewing is double-blind and a submission may be desk-rejected if the
+supplementary material identifies the authors. Three things in a working copy of
+this repository do:
+
+1. **`.git/`** — the commit history carries the author's name, email and the
+   origin URL. Ship a zip of the working tree with `.git/` removed:
+
+   ```bash
+   git archive --format=zip HEAD -o artifact.zip
+   ```
+
+   which never includes it.
+
+2. **Absolute paths in generated output.** Scripts now print paths relative to
+   the repository, but any `results/*.txt` regenerated on a machine before that
+   change may still embed a home directory. Grep before zipping.
+
+3. **`LICENSE`** — the copyright line reads "The Authors"; restore the real
+   holder for the camera-ready version, not for the submission.
+
+The paper refers to "the anonymised artifact accompanying this submission" and
+carries no repository URL, which is deliberate.
+
+---
 
 ## Citation
 
@@ -299,6 +709,15 @@ is false in general — see above.
 }
 ```
 
+Plain text:
+
+> When Every Agent Chases the Same Green Hour: Equilibrium Inefficiency and
+> Mechanism Design for Competing Carbon-Aware Datacenter Schedulers.
+> *Proceedings of the International Conference on Autonomous Agents and
+> Multiagent Systems (AAMAS)*, 2027.
+
+---
+
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [`LICENSE`](LICENSE).
