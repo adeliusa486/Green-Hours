@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/figures/fig3_shade_architecture_web.png" width="100%"
-       alt="One round of SHADE: operators solve locally behind a privacy boundary, a clearinghouse receives only the securely aggregated sum and broadcasts a damped aggregate, and each operator forms its own correction by subtracting its own load.">
+  <img src="docs/figures/shade_architecture.jpg" width="100%"
+       alt="SHADE end to end: the public EIA-930 signal reaches a clearinghouse that damps and broadcasts the aggregate; each operator runs five private steps behind a boundary no raw schedule crosses, returns a masked share, and settlement is signed and meter-verifiable without moving money or disclosing a schedule.">
 </p>
 
 Simulator, solver, analytic oracles, and reproducible experiments for the paper
@@ -51,8 +51,6 @@ public grid data, and measures what the correlation costs.
 - [Implementation notes](#implementation-notes)
 - [Corrections log](#corrections-log)
 - [Troubleshooting](#troubleshooting)
-- [Limitations](#limitations)
-- [Anonymity notice](#anonymity-notice)
 - [Citation](#citation)
 - [License](#license)
 
@@ -163,14 +161,12 @@ are *not* identical across operators — that is what makes the correction
 load-responsive without anyone holding a schedule.
 
 <p align="center">
-  <img src="docs/figures/shade_overview.jpg" width="100%"
-       alt="SHADE coordination architecture: the public grid signal feeds a clearinghouse that broadcasts a damped aggregate; each operator computes its own correction from the aggregate minus its own lagged load, solves a local quadratic program, and returns only a masked additive share.">
+  <img src="docs/figures/fig3_shade_architecture_web.png" width="100%"
+       alt="One round of SHADE: what stays inside the operator, the local quadratic program, secure aggregation, and the damped broadcast.">
 </p>
 
-<sub>Illustrative overview. It carries no numeric result; every quantity it names
-is defined in <code>src/gh/mech.py</code>. The authoritative diagram is
-<a href="docs/figures/fig3_shade_architecture.pdf">Figure S4</a>, exported from
-the paper's own <code>.tex</code>.</sub>
+<sub>Paper Figure S4, exported from the manuscript's own <code>.tex</code> by
+<code>scripts/export_figures.py</code>.</sub>
 
 Algorithm 1 in the paper's supplement gives the pseudocode; `src/gh/mech.py` is
 the implementation.
@@ -459,8 +455,8 @@ the paper does not.
 
 Each is emitted as `.pdf` (vector), `.svg`, `.png` (600 dpi) and `_web.png` — a
 pure crop of the PNG with the standalone class's blank margin removed, for
-rendering in this file. `shade_overview.jpg` is an illustrative architecture
-overview used only in this README; it states no numeric result.
+rendering in this file.
+`shade_architecture.jpg` is the end-to-end overview at the top of this file.
 
 `make_threshold_figure.py --check` verifies Figure 2 against `results/E9.json`
 coordinate by coordinate, including that each bar in panel (b) spans a real pair
@@ -646,53 +642,6 @@ count is read off a live run, not transcribed.
 | `export_figures.py` fails | `pdflatex` or `pdftocairo` not on `PATH` | Install TeX Live or MiKTeX, or skip it — no numeric result depends on it |
 | `--web-only` fails | Pillow missing | `pip install Pillow` |
 | A ratio below 1.0 appears | The planner denominator is wrong for that instance | This is the signature of the staircase bug — see [Implementation notes](#implementation-notes) |
-
----
-
-## Limitations
-
-- **No estimate here is causal.** The MEF estimator is weakly identified and the
-  net-load identifying restriction is rejected in 17 of 24 CAISO bins.
-- **Deadlines are swept, not measured.** No public trace carries them, and the
-  Azure trace carries no timezone, so the diurnal phase is swept too.
-- **No cooperative-MARL baseline.** It needs GPU training and is reported
-  absent, not estimated.
-- **Three regions only.** Great Britain and Germany are excluded because the
-  available feed gives no absolute demand, so no marginal regression is
-  possible.
-- **The DP variant does not work at this scale**, and is reported as a costed
-  negative result.
-- **`results/V16`–`V22` are not covered** by `tests/test_claims.py`.
-
----
-
-## Anonymity notice
-
-> [!CAUTION]
-> **Read this before submitting the repository as supplementary material.**
-
-AAMAS reviewing is double-blind and a submission may be desk-rejected if the
-supplementary material identifies the authors. Three things in a working copy of
-this repository do:
-
-1. **`.git/`** — the commit history carries the author's name, email and the
-   origin URL. Ship a zip of the working tree with `.git/` removed:
-
-   ```bash
-   git archive --format=zip HEAD -o artifact.zip
-   ```
-
-   which never includes it.
-
-2. **Absolute paths in generated output.** Scripts now print paths relative to
-   the repository, but any `results/*.txt` regenerated on a machine before that
-   change may still embed a home directory. Grep before zipping.
-
-3. **`LICENSE`** — the copyright line reads "The Authors"; restore the real
-   holder for the camera-ready version, not for the submission.
-
-The paper refers to "the anonymised artifact accompanying this submission" and
-carries no repository URL, which is deliberate.
 
 ---
 
