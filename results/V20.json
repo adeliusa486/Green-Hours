@@ -1,0 +1,62 @@
+{
+ "provenance": "SYNTHETIC.  Tightness of Theorem 1: how much of the bound an adversary can realise, and how the two factors trade off.  No grid data.",
+ "random": {
+  "n": 400,
+  "frac_of_bound_max": 0.6663341266208535,
+  "frac_of_bound_median": 0.2991008151500622,
+  "poa_max": 5.3155698759647,
+  "violations": 0,
+  "worst_case": {
+   "poa": 1.0000000000001252,
+   "bound": 1.5007485885067522,
+   "eta_active": 0.0004988100688450015,
+   "n_active": 1,
+   "frac": 0.6663341266208535
+  }
+ },
+ "adversarial": {
+  "n": 360,
+  "best": {
+   "poa": 6.52511415525114,
+   "bound": 9.999999999999998,
+   "eta_active": 0.85,
+   "n_active": 2,
+   "delta_eta": 0.02,
+   "beta": 0.01,
+   "n": 2,
+   "cap_frac": 1.0,
+   "frac": 0.6525114155251142
+  },
+  "frac_max": 0.6525114155251142,
+  "poa_max": 6.52511415525114
+ },
+ "calibrated": {
+  "CISO": {
+   "poa": 1.0136112186031279,
+   "bound": 4.560208927610243,
+   "eta_active": 0.6710677024208037,
+   "frac_of_bound": 0.22227297799145054,
+   "poa_accounting_only": 1.0119705130283299,
+   "accounting_factor_bound": 3.0401392850734954,
+   "strategic_factor_realised": 1.0016212978082615
+  },
+  "ERCO": {
+   "poa": 1.0416561650315468,
+   "bound": 2.952973518467274,
+   "eta_active": 0.4920374359541946,
+   "frac_of_bound": 0.35274822429569674,
+   "poa_accounting_only": 1.0403494748356106,
+   "accounting_factor_bound": 1.968649012311516,
+   "strategic_factor_realised": 1.0012560108190016
+  },
+  "PJM": {
+   "poa": 1.0740571824737872,
+   "bound": 2.6276520004239794,
+   "eta_active": 0.4291481521305064,
+   "frac_of_bound": 0.4087516848884422,
+   "poa_accounting_only": 1.0841953276110048,
+   "accounting_factor_bound": 1.7517680002826528,
+   "strategic_factor_realised": 0.9906491525290404
+  }
+ }
+}

@@ -1,0 +1,184 @@
+{
+ "provenance": "Derived from results/V15.json and results/E3.json; no re-solve.  TOST equivalence against a margin of 25% of the equilibrium gap, realised power, and the per-region decomposition of the pooled difference.",
+ "reference": "Independent greedy",
+ "equilibrium_gap": 0.04191276232995822,
+ "margin_frac_of_gap": 0.25,
+ "margin": 0.010478190582489555,
+ "pooled": {
+  "Carbon-agnostic": {
+   "n_pairs": 60,
+   "mean_diff": -0.0018506775190619015,
+   "sd_diff": 0.014303867326676923,
+   "wilcoxon_p": 0.9354597403431613,
+   "cohens_dz": -0.1293830176689601,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.0018466213314193376,
+    "ci90": [
+     -0.004936553558931174,
+     0.0012351985208073704
+    ],
+    "p_lower": 8.860187348394226e-06,
+    "p_upper": 4.76291114009112e-09,
+    "p_tost": 8.860187348394226e-06,
+    "equivalent_at_05": true
+   },
+   "power_vs_observed": 0.16028189526953798,
+   "mde_80pct": 0.005173467025556504
+  },
+  "Naive forecast-taking": {
+   "n_pairs": 60,
+   "mean_diff": 0.007732906545073074,
+   "sd_diff": 0.010687725256497386,
+   "wilcoxon_p": 5.970871816020806e-11,
+   "cohens_dz": 0.7235315616269243,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.001379779397575159,
+    "ci90": [
+     0.005427166807944716,
+     0.01003864628220143
+    ],
+    "p_lower": 1.4677124160772787e-19,
+    "p_upper": 0.025635239284814367,
+    "p_tost": 0.025635239284814367,
+    "equivalent_at_05": true
+   },
+   "power_vs_observed": 0.9998429930373209,
+   "mde_80pct": 0.003865569564503382
+  },
+  "Static MEF signalling": {
+   "n_pairs": 60,
+   "mean_diff": -0.04187962298899614,
+   "sd_diff": 0.023165971423389012,
+   "wilcoxon_p": 1.6295557943119345e-11,
+   "cohens_dz": -1.8078077635334258,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.002990714050716752,
+    "ci90": [
+     -0.04687738440016412,
+     -0.03688186157782816
+    ],
+    "p_lower": 0.999999999999998,
+    "p_upper": 2.4316269520860856e-25,
+    "p_tost": 0.999999999999998,
+    "equivalent_at_05": false
+   },
+   "power_vs_observed": 1.0,
+   "mde_80pct": 0.008378740276090813
+  },
+  "Threshold deferral": {
+   "n_pairs": 60,
+   "mean_diff": 0.01895108267012047,
+   "sd_diff": 0.02158249356144641,
+   "wilcoxon_p": 2.1037302037925465e-07,
+   "cohens_dz": 0.8780766048263058,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.0027862879377703585,
+    "ci90": [
+     0.014294936311877294,
+     0.023607229028363645
+    ],
+    "p_lower": 1.5919281620750755e-15,
+    "p_upper": 0.9982424742458976,
+    "p_tost": 0.9982424742458976,
+    "equivalent_at_05": false
+   },
+   "power_vs_observed": 0.9999992088743818,
+   "mde_80pct": 0.007806023099863902
+  },
+  "Randomized jitter": {
+   "n_pairs": 60,
+   "mean_diff": -0.0017469620938195597,
+   "sd_diff": 0.0037401139618484965,
+   "wilcoxon_p": 0.0010809941395103183,
+   "cohens_dz": -0.4670879314479897,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.00048284663623856893,
+    "ci90": [
+     -0.002553843743212636,
+     -0.0009400804444264832
+    ],
+    "p_lower": 4.837095265574447e-26,
+    "p_upper": 1.0989648261601366e-33,
+    "p_tost": 4.837095265574447e-26,
+    "equivalent_at_05": true
+   },
+   "power_vs_observed": 0.9470665007803882,
+   "mde_80pct": 0.0013527359987015443
+  },
+  "SHADE (ours)": {
+   "n_pairs": 60,
+   "mean_diff": -0.04191276232952316,
+   "sd_diff": 0.023127206886930998,
+   "wilcoxon_p": 1.6295557943119345e-11,
+   "cohens_dz": -1.8122708260636406,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.002985709570579241,
+    "ci90": [
+     -0.04690216078880404,
+     -0.036923363870242275
+    ],
+    "p_lower": 0.9999999999999982,
+    "p_upper": 2.1684146022097337e-25,
+    "p_tost": 0.9999999999999982,
+    "equivalent_at_05": false
+   },
+   "power_vs_observed": 1.0,
+   "mde_80pct": 0.00836471979851322
+  },
+  "Responsive MEF": {
+   "n_pairs": 60,
+   "mean_diff": -0.04191209776918201,
+   "sd_diff": 0.023126945641467975,
+   "wilcoxon_p": 1.6295557943119345e-11,
+   "cohens_dz": -1.8122625624211766,
+   "tost": {
+    "margin": 0.010478190582489555,
+    "se": 0.002985675843934989,
+    "ci90": [
+     -0.04690143986810269,
+     -0.036922755670261334
+    ],
+    "p_lower": 0.9999999999999982,
+    "p_upper": 2.1685641616955276e-25,
+    "p_tost": 0.9999999999999982,
+    "equivalent_at_05": false
+   },
+   "power_vs_observed": 1.0,
+   "mde_80pct": 0.008364625310445227
+  }
+ },
+ "by_region_means": {
+  "CISO": {
+   "carbon_agnostic": 1.0313088482491837,
+   "equilibrium": 1.0138494039316523,
+   "difference": 0.017459444317531325,
+   "agnostic_worse": true
+  },
+  "ERCO": {
+   "carbon_agnostic": 1.0329211488256007,
+   "equilibrium": 1.0423374387602542,
+   "difference": -0.009416289934653488,
+   "agnostic_worse": false
+  },
+  "PJM": {
+   "carbon_agnostic": 1.055956257357905,
+   "equilibrium": 1.0695514442979681,
+   "difference": -0.013595186940063009,
+   "agnostic_worse": false
+  }
+ },
+ "regions_disagree_in_sign": true,
+ "jitter_vs_agnostic": {
+  "jitter_mean": -0.0017469620938195597,
+  "agnostic_mean": -0.0018506775190619015,
+  "jitter_effect_is_smaller": true,
+  "sd_ratio_agnostic_over_jitter": 3.824446921293127,
+  "both_inside_margin": true
+ }
+}

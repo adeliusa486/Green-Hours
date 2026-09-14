@@ -1,0 +1,301 @@
+{
+ "provenance": "Derived from results/E8.json; no re-estimation.  Specification sensitivity of beta and kappa, the quantities the negative result depends on, reported beside eta, the quantity Section 6 already audits.",
+ "preferred": "consumption|netload|ols|full",
+ "regions": [
+  "CISO",
+  "ERCO",
+  "PJM"
+ ],
+ "by_region": {
+  "CISO": {
+   "preferred": {
+    "beta": 0.005941037950445706,
+    "kappa": 0.031622864174005394,
+    "eta": 0.6710677024208037
+   },
+   "spec": {
+    "cells": [
+     "consumption_fixed|netload|ols|full",
+     "consumption_gas|netload|ols|full",
+     "consumption|decomposed|ols|full",
+     "consumption|demand|ols|full",
+     "consumption|netload_interchange|ols|full",
+     "consumption|netload_lag|ols|full",
+     "consumption|netload|binlocal|full",
+     "consumption|netload|huber|full",
+     "consumption|netload|ols_int|full",
+     "consumption|netload|ols|full",
+     "consumption|netload|theilsen|full",
+     "production|netload|ols|full"
+    ],
+    "eta": {
+     "n": 12,
+     "min": 0.629571135133902,
+     "max": 0.719478943663866,
+     "median": 0.671252356581131,
+     "rel_range": 0.13394039908908287,
+     "ratio": 1.1428080220209615,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 12,
+     "min": 0.004577038612682683,
+     "max": 0.008892687519138387,
+     "median": 0.005941037950445706,
+     "rel_range": 0.7264132871145752,
+     "ratio": 1.942891085624079,
+     "sign_changes": false
+    },
+    "kappa": {
+     "n": 12,
+     "min": 0.022377619637905674,
+     "max": 0.06574148490890137,
+     "median": 0.0314049532359259,
+     "rel_range": 1.380797001836937,
+     "ratio": 2.9378229665473987,
+     "sign_changes": false
+    }
+   },
+   "window": {
+    "cells": [
+     "consumption|netload|ols|autumn",
+     "consumption|netload|ols|highload",
+     "consumption|netload|ols|highvre",
+     "consumption|netload|ols|lowload",
+     "consumption|netload|ols|lowvre",
+     "consumption|netload|ols|summer",
+     "consumption|netload|ols|weekday",
+     "consumption|netload|ols|weekend"
+    ],
+    "eta": {
+     "n": 8,
+     "min": 0.2339871474508073,
+     "max": 0.7105422422682939,
+     "median": 0.6702250345228359,
+     "rel_range": 0.711037443053389,
+     "ratio": 3.0366720993411658,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 8,
+     "min": -0.012137206383976529,
+     "max": 0.022092426338448323,
+     "median": 0.005761671750118288,
+     "rel_range": 5.940920310450194,
+     "ratio": null,
+     "sign_changes": true
+    },
+    "kappa": {
+     "n": 8,
+     "min": 0.01001029436039672,
+     "max": 0.16164349605122844,
+     "median": 0.03572406292029129,
+     "rel_range": 4.2445676469991875,
+     "ratio": 16.147726553449953,
+     "sign_changes": false
+    }
+   }
+  },
+  "ERCO": {
+   "preferred": {
+    "beta": 0.0006901290369621181,
+    "kappa": 0.006903135243414353,
+    "eta": 0.49203743595419447
+   },
+   "spec": {
+    "cells": [
+     "consumption_fixed|netload|ols|full",
+     "consumption_gas|netload|ols|full",
+     "consumption|decomposed|ols|full",
+     "consumption|demand|ols|full",
+     "consumption|netload_interchange|ols|full",
+     "consumption|netload_lag|ols|full",
+     "consumption|netload|binlocal|full",
+     "consumption|netload|huber|full",
+     "consumption|netload|ols_int|full",
+     "consumption|netload|ols|full",
+     "consumption|netload|theilsen|full",
+     "production|netload|ols|full"
+    ],
+    "eta": {
+     "n": 12,
+     "min": 0.27981738155371794,
+     "max": 0.5050253011821686,
+     "median": 0.49203743595419447,
+     "rel_range": 0.4577048475828089,
+     "ratio": 1.8048389216493914,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 12,
+     "min": 0.0006901290369621181,
+     "max": 0.0018954544380800009,
+     "median": 0.0006901290369621181,
+     "rel_range": 1.7465217902199996,
+     "ratio": 2.7465217902199996,
+     "sign_changes": false
+    },
+    "kappa": {
+     "n": 12,
+     "min": 0.006841550668845549,
+     "max": 0.07363642464206743,
+     "median": 0.006903135243414353,
+     "rel_range": 9.67601989790722,
+     "ratio": 10.763119094825461,
+     "sign_changes": false
+    }
+   },
+   "window": {
+    "cells": [
+     "consumption|netload|ols|autumn",
+     "consumption|netload|ols|highload",
+     "consumption|netload|ols|highvre",
+     "consumption|netload|ols|lowload",
+     "consumption|netload|ols|lowvre",
+     "consumption|netload|ols|summer",
+     "consumption|netload|ols|weekday",
+     "consumption|netload|ols|weekend"
+    ],
+    "eta": {
+     "n": 8,
+     "min": 0.31655349465316096,
+     "max": 0.5717424194648476,
+     "median": 0.4832430690661207,
+     "rel_range": 0.5280757058861613,
+     "ratio": 1.8061478679655398,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 8,
+     "min": -0.0010747332541379375,
+     "max": 0.005584225209551779,
+     "median": 0.00028692912681804066,
+     "rel_range": 23.207676883610947,
+     "ratio": null,
+     "sign_changes": true
+    },
+    "kappa": {
+     "n": 8,
+     "min": 0.0005908236920049459,
+     "max": 0.08300271657151033,
+     "median": 0.008265059570527686,
+     "rel_range": 9.971119043518735,
+     "ratio": 140.48643900829808,
+     "sign_changes": false
+    }
+   }
+  },
+  "PJM": {
+   "preferred": {
+    "beta": 0.0025409365301989665,
+    "kappa": 0.05233795341763555,
+    "eta": 0.4291481521305064
+   },
+   "spec": {
+    "cells": [
+     "consumption_fixed|netload|ols|full",
+     "consumption_gas|netload|ols|full",
+     "consumption|decomposed|ols|full",
+     "consumption|demand|ols|full",
+     "consumption|netload_interchange|ols|full",
+     "consumption|netload_lag|ols|full",
+     "consumption|netload|binlocal|full",
+     "consumption|netload|huber|full",
+     "consumption|netload|ols_int|full",
+     "consumption|netload|ols|full",
+     "consumption|netload|theilsen|full",
+     "production|netload|ols|full"
+    ],
+    "eta": {
+     "n": 12,
+     "min": 0.3591159468824229,
+     "max": 0.4640330349349593,
+     "median": 0.42888481213417995,
+     "rel_range": 0.24462766011800924,
+     "ratio": 1.2921537986918943,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 12,
+     "min": 0.002316353754594689,
+     "max": 0.002756679552627801,
+     "median": 0.0025409365301989665,
+     "rel_range": 0.17329271817688122,
+     "ratio": 1.1900943658366894,
+     "sign_changes": false
+    },
+    "kappa": {
+     "n": 12,
+     "min": 0.04441139794565872,
+     "max": 0.09269051299663572,
+     "median": 0.05225854362825587,
+     "rel_range": 0.923851138952766,
+     "ratio": 2.087088389112425,
+     "sign_changes": false
+    }
+   },
+   "window": {
+    "cells": [
+     "consumption|netload|ols|autumn",
+     "consumption|netload|ols|highload",
+     "consumption|netload|ols|highvre",
+     "consumption|netload|ols|lowload",
+     "consumption|netload|ols|lowvre",
+     "consumption|netload|ols|summer",
+     "consumption|netload|ols|weekday",
+     "consumption|netload|ols|weekend"
+    ],
+    "eta": {
+     "n": 8,
+     "min": 0.41598628835225626,
+     "max": 0.5064391268437918,
+     "median": 0.4364920853625656,
+     "rel_range": 0.20722675513440802,
+     "ratio": 1.217441874946946,
+     "sign_changes": false
+    },
+    "beta": {
+     "n": 8,
+     "min": 0.0004975653450516751,
+     "max": 0.003434920686274364,
+     "median": 0.002461250787148643,
+     "rel_range": 1.1934400819940876,
+     "ratio": 6.903456441319536,
+     "sign_changes": false
+    },
+    "kappa": {
+     "n": 8,
+     "min": 0.009381733654950958,
+     "max": 0.06480751575309665,
+     "median": 0.054690284636674906,
+     "rel_range": 1.0134484116576998,
+     "ratio": 6.907840079098412,
+     "sign_changes": false
+    }
+   }
+  }
+ },
+ "headline": {
+  "CISO": {
+   "eta_rel_range": 0.13394039908908287,
+   "beta_rel_range": 0.7264132871145752,
+   "kappa_rel_range": 1.380797001836937,
+   "beta_ratio": 1.942891085624079,
+   "kappa_ratio": 2.9378229665473987
+  },
+  "ERCO": {
+   "eta_rel_range": 0.4577048475828089,
+   "beta_rel_range": 1.7465217902199996,
+   "kappa_rel_range": 9.67601989790722,
+   "beta_ratio": 2.7465217902199996,
+   "kappa_ratio": 10.763119094825461
+  },
+  "PJM": {
+   "eta_rel_range": 0.24462766011800924,
+   "beta_rel_range": 0.17329271817688122,
+   "kappa_rel_range": 0.923851138952766,
+   "beta_ratio": 1.1900943658366894,
+   "kappa_ratio": 2.087088389112425
+  }
+ }
+}

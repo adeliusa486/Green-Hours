@@ -1,0 +1,302 @@
+{
+ "provenance": "REPLAY-GRID / SIM-WORKLOAD.  Theorem 4's market-power term evaluated on the calibrated primitives at a range of market structures, with the total flexible pool held fixed.  Arithmetic, not a new solve.",
+ "markets": [
+  "Azure trace",
+  "n=32, equal",
+  "n=8, equal",
+  "n=5, equal",
+  "n=5, concentrated",
+  "n=4, concentrated",
+  "n=3, hyperscale",
+  "n=2, duopoly"
+ ],
+ "by_region": {
+  "CISO": {
+   "beta_bar": 0.008011015276078283,
+   "E_tot": 2533.3811281584335,
+   "C_planner": 1020678.6664127961,
+   "C_nash": 1034571.3468648896,
+   "gap_abs": 13892.680452093482,
+   "gap_rel": 0.013611218603127757,
+   "rows": [
+    {
+     "market": "Azure trace",
+     "n": 32,
+     "rho_bar": 0.045,
+     "E_bar": 114.0021507671295,
+     "epsilon": 9.370357466924691,
+     "n_epsilon": 299.8514389415901,
+     "eps_over_gap": 0.0006744816091636712,
+     "n_eps_over_gap": 0.02158341149323748
+    },
+    {
+     "market": "n=32, equal",
+     "n": 32,
+     "rho_bar": 0.03125,
+     "E_bar": 79.16816025495105,
+     "epsilon": 3.138113756445008,
+     "n_epsilon": 100.41964020624026,
+     "eps_over_gap": 0.0002258825262170431,
+     "n_eps_over_gap": 0.007228240838945379
+    },
+    {
+     "market": "n=8, equal",
+     "n": 8,
+     "rho_bar": 0.125,
+     "E_bar": 316.6726410198042,
+     "epsilon": 200.83928041248052,
+     "n_epsilon": 1606.7142432998442,
+     "eps_over_gap": 0.014456481677890758,
+     "n_eps_over_gap": 0.11565185342312606
+    },
+    {
+     "market": "n=5, equal",
+     "n": 5,
+     "rho_bar": 0.2,
+     "E_bar": 506.67622563168675,
+     "epsilon": 822.6376925695204,
+     "n_epsilon": 4113.188462847602,
+     "eps_over_gap": 0.05921374895264056,
+     "n_eps_over_gap": 0.2960687447632028
+    },
+    {
+     "market": "n=5, concentrated",
+     "n": 5,
+     "rho_bar": 0.3,
+     "E_bar": 760.01433844753,
+     "epsilon": 2776.4022124221306,
+     "n_epsilon": 13882.011062110652,
+     "eps_over_gap": 0.19984640271516182,
+     "n_eps_over_gap": 0.9992320135758092
+    },
+    {
+     "market": "n=4, concentrated",
+     "n": 4,
+     "rho_bar": 0.3,
+     "E_bar": 760.01433844753,
+     "epsilon": 2776.4022124221306,
+     "n_epsilon": 11105.608849688522,
+     "eps_over_gap": 0.19984640271516182,
+     "n_eps_over_gap": 0.7993856108606473
+    },
+    {
+     "market": "n=3, hyperscale",
+     "n": 3,
+     "rho_bar": 0.4,
+     "E_bar": 1013.3524512633735,
+     "epsilon": 6581.101540556163,
+     "n_epsilon": 19743.30462166849,
+     "eps_over_gap": 0.4737099916211245,
+     "n_eps_over_gap": 1.4211299748633734
+    },
+    {
+     "market": "n=2, duopoly",
+     "n": 2,
+     "rho_bar": 0.5,
+     "E_bar": 1266.6905640792168,
+     "epsilon": 12853.713946398753,
+     "n_epsilon": 25707.427892797507,
+     "eps_over_gap": 0.9252148273850085,
+     "n_eps_over_gap": 1.850429654770017
+    }
+   ]
+  },
+  "ERCO": {
+   "beta_bar": 0.0022313530652319684,
+   "E_tot": 5031.642833778582,
+   "C_planner": 2636638.720346827,
+   "C_nash": 2746470.978010161,
+   "gap_abs": 109832.25766333379,
+   "gap_rel": 0.041656165031546795,
+   "rows": [
+    {
+     "market": "Azure trace",
+     "n": 32,
+     "rho_bar": 0.045,
+     "E_bar": 226.4239275200362,
+     "epsilon": 10.295689627565665,
+     "n_epsilon": 329.46206808210127,
+     "eps_over_gap": 9.374012559338257e-05,
+     "n_eps_over_gap": 0.0029996840189882423
+    },
+    {
+     "market": "n=32, equal",
+     "n": 32,
+     "rho_bar": 0.03125,
+     "E_bar": 157.23883855558068,
+     "epsilon": 3.4480056248009587,
+     "n_epsilon": 110.33617999363068,
+     "eps_over_gap": 3.1393378394988915e-05,
+     "n_eps_over_gap": 0.0010045881086396453
+    },
+    {
+     "market": "n=8, equal",
+     "n": 8,
+     "rho_bar": 0.125,
+     "E_bar": 628.9553542223227,
+     "epsilon": 220.67235998726136,
+     "n_epsilon": 1765.3788798980909,
+     "eps_over_gap": 0.0020091762172792906,
+     "n_eps_over_gap": 0.016073409738234325
+    },
+    {
+     "market": "n=5, equal",
+     "n": 5,
+     "rho_bar": 0.2,
+     "E_bar": 1006.3285667557165,
+     "epsilon": 903.8739865078227,
+     "n_epsilon": 4519.3699325391135,
+     "eps_over_gap": 0.008229585785975976,
+     "n_eps_over_gap": 0.04114792892987988
+    },
+    {
+     "market": "n=5, concentrated",
+     "n": 5,
+     "rho_bar": 0.3,
+     "E_bar": 1509.4928501335746,
+     "epsilon": 3050.574704463901,
+     "n_epsilon": 15252.873522319505,
+     "eps_over_gap": 0.027774852027668915,
+     "n_eps_over_gap": 0.13887426013834456
+    },
+    {
+     "market": "n=4, concentrated",
+     "n": 4,
+     "rho_bar": 0.3,
+     "E_bar": 1509.4928501335746,
+     "epsilon": 3050.574704463901,
+     "n_epsilon": 12202.298817855604,
+     "eps_over_gap": 0.027774852027668915,
+     "n_eps_over_gap": 0.11109940811067566
+    },
+    {
+     "market": "n=3, hyperscale",
+     "n": 3,
+     "rho_bar": 0.4,
+     "E_bar": 2012.657133511433,
+     "epsilon": 7230.991892062581,
+     "n_epsilon": 21692.975676187743,
+     "eps_over_gap": 0.06583668628780781,
+     "n_eps_over_gap": 0.1975100588634234
+    },
+    {
+     "market": "n=2, duopoly",
+     "n": 2,
+     "rho_bar": 0.5,
+     "E_bar": 2515.821416889291,
+     "epsilon": 14123.031039184727,
+     "n_epsilon": 28246.062078369454,
+     "eps_over_gap": 0.1285872779058746,
+     "n_eps_over_gap": 0.2571745558117492
+    }
+   ]
+  },
+  "PJM": {
+   "beta_bar": 0.004013598728171791,
+   "E_tot": 8607.982527173914,
+   "C_planner": 4365362.005765924,
+   "C_nash": 4688648.416391069,
+   "gap_abs": 323286.41062514484,
+   "gap_rel": 0.07405718247378722,
+   "rows": [
+    {
+     "market": "Azure trace",
+     "n": 32,
+     "rho_bar": 0.045,
+     "E_bar": 387.3592137228261,
+     "epsilon": 54.20061831346687,
+     "n_epsilon": 1734.4197860309398,
+     "eps_over_gap": 0.00016765510869652127,
+     "n_eps_over_gap": 0.005364963478288681
+    },
+    {
+     "market": "n=32, equal",
+     "n": 32,
+     "rho_bar": 0.03125,
+     "E_bar": 268.9994539741848,
+     "epsilon": 18.151677408005828,
+     "n_epsilon": 580.8536770561865,
+     "eps_over_gap": 5.6147356682594847e-05,
+     "n_eps_over_gap": 0.001796715413843035
+    },
+    {
+     "market": "n=8, equal",
+     "n": 8,
+     "rho_bar": 0.125,
+     "E_bar": 1075.9978158967392,
+     "epsilon": 1161.707354112373,
+     "n_epsilon": 9293.658832898984,
+     "eps_over_gap": 0.00359343082768607,
+     "n_eps_over_gap": 0.02874744662148856
+    },
+    {
+     "market": "n=5, equal",
+     "n": 5,
+     "rho_bar": 0.2,
+     "E_bar": 1721.5965054347828,
+     "epsilon": 4758.35332244428,
+     "n_epsilon": 23791.7666122214,
+     "eps_over_gap": 0.014718692670202144,
+     "n_eps_over_gap": 0.07359346335101072
+    },
+    {
+     "market": "n=5, concentrated",
+     "n": 5,
+     "rho_bar": 0.3,
+     "E_bar": 2582.394758152174,
+     "epsilon": 16059.442463249441,
+     "n_epsilon": 80297.2123162472,
+     "eps_over_gap": 0.049675587761932226,
+     "n_eps_over_gap": 0.2483779388096611
+    },
+    {
+     "market": "n=4, concentrated",
+     "n": 4,
+     "rho_bar": 0.3,
+     "E_bar": 2582.394758152174,
+     "epsilon": 16059.442463249441,
+     "n_epsilon": 64237.769852997764,
+     "eps_over_gap": 0.049675587761932226,
+     "n_eps_over_gap": 0.1987023510477289
+    },
+    {
+     "market": "n=3, hyperscale",
+     "n": 3,
+     "rho_bar": 0.4,
+     "E_bar": 3443.1930108695656,
+     "epsilon": 38066.82657955424,
+     "n_epsilon": 114200.47973866272,
+     "eps_over_gap": 0.11774954136161715,
+     "n_eps_over_gap": 0.35324862408485147
+    },
+    {
+     "market": "n=2, duopoly",
+     "n": 2,
+     "rho_bar": 0.5,
+     "E_bar": 4303.991263586957,
+     "epsilon": 74349.27066319187,
+     "n_epsilon": 148698.54132638374,
+     "eps_over_gap": 0.2299795729719085,
+     "n_eps_over_gap": 0.459959145943817
+    }
+   ]
+  }
+ },
+ "headline": {
+  "CISO": {
+   "trace_n_eps_over_gap": 0.02158341149323748,
+   "hyperscale_n_eps_over_gap": 1.4211299748633734,
+   "ratio": 65.84362139917697
+  },
+  "ERCO": {
+   "trace_n_eps_over_gap": 0.0029996840189882423,
+   "hyperscale_n_eps_over_gap": 0.1975100588634234,
+   "ratio": 65.84362139917697
+  },
+  "PJM": {
+   "trace_n_eps_over_gap": 0.005364963478288681,
+   "hyperscale_n_eps_over_gap": 0.35324862408485147,
+   "ratio": 65.84362139917697
+  }
+ }
+}
